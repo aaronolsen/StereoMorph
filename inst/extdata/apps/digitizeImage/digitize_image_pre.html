@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+
+<link href="digitize_image.css" rel="stylesheet" type="text/css">
+<script src="digitize_image.js" type="text/javascript" ></script>
+
+<html lang="en-US" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml" >
+	<body class='body_dp' onload="" >
+		<div  class='digitize_photograph_container'  >
+			<a id='keydown' type='checkbox' onkeydown=";" ></a>
+			<object id="image_object" onload="Javascript:onLoadFunctions();" data="digitize_image.svg" type="image/svg+xml" width="800" height="600" fill="black" >Your browser doesn't support SVG</object>
+		</div>
+		<div id='landmark_control_panel_container' class='landmark_control_panel_container'  >
+			<div class='help' >
+				<a class='help' href='help.html' target='_blank' title='Click to open help in new window' name='Click to open help in new window' >Help</a>
+			</div>
+			<div class='view_digitize_options_container'  >
+				<div  class='view_digitize_options_links' style='width:300px;' >
+					<div class='view_digitize_options' id='vis_control_vdo_info' onClick="javascript:selectStyle(this,'bold');selectStyle(this,'backgroundColor','orange');createCookie('vis_control_vdo','info');filterViewEntries(this,'info',2);" >Info</div>
+					<div class='view_digitize_options' id='vis_control_vdo_collect_landmarks' onClick="javascript:selectStyle(this,'bold');selectStyle(this,'backgroundColor','orange');createCookie('vis_control_vdo','collect_landmarks');filterViewEntries(this,'collect_landmarks',2);" >Landmarks</div>
+					<div class='view_digitize_options' id='vis_control_vdo_collect_curves' onClick="javascript:selectStyle(this,'bold');selectStyle(this,'backgroundColor','orange');createCookie('vis_control_vdo','collect_curves');filterViewEntries(this,'collect_curves',2);" >Curves</div>
+				</div>
+				<div class='digitize_options_container' style='' >
+					<div id='info' class='landmark_control_panel_view_entries'  >
+						<div id='info' class='image_info_div'  >
+							<p><b>Image name:</b> <span id='image_name' class='image_info' ></span></p>
+							<p><b>Image dimensions:</b> <span id='image_dimensions' class='image_info' ></span></p>
+							<p><b>Image size:</b> <span id='image_size' class='image_info' ></span></p>
+						</div>
+					</div>
+					<div id='collect_landmarks' class='landmark_control_panel_view_entries'  >
+						<div class='landmark_table_header' >
+							<div class='landmark_table_row_header' >
+								<div class='landmark_table_col1_header' >Landmark name</div>
+								<div class='landmark_table_col2_header' >x</div>
+								<div class='landmark_table_col2_header' >y</div>
+							</div>
+						</div>
+						<div id='landmark_table_container' class='landmark_table_container' ></div>
+					</div>
+					<div id='collect_curves' class='landmark_control_panel_view_entries'  >
+						<div class='landmark_table_header' >
+							<div class='landmark_table_row_header' >
+								<div class='semilandmark_table_col1_header' >Curve name</div>
+								<div class='landmark_table_col2_header' >x</div>
+								<div class='landmark_table_col2_header' >y</div>
+							</div>
+						</div>
+						<div id='curve_table_container' class='curve_table_container' ></div>
+					</div>				
+				</div>				
+			</div>
+			<div id='submit_links' class='submit_links'  >
+				<button id='submit_landmarks_button' type="button" class='submit_button' name="Save landmarks" title="Save landmarks" onclick="javascript:submitShapes('landmarks');" >Submit<br>Landmarks</button>
+				<button id='submit_curves_button' type="button" class='submit_button' name="Save curves" title="Save curves" onclick="javascript:submitShapes('curves');" >Submit<br>Curves</button>
+				<button id='submit_all_button' type="button" class='submit_button' name="Save landmarks and curves" title="Save landmarks and curves" onclick="javascript:submitShapes('all');" >Submit<br>All</button>
+				<button id='previous_image' type="button" class='submit_button' name="Move to previous image" title="Move to previous image" onclick="javascript:changeImage(-1);" >Previous<br>Image</button>
+				<button id='next_image' type="button" class='submit_button' name="Move to next image" title="Move to next image"  onclick="javascript:changeImage(1);" >Next<br>Image</button>
+				<button type="button" class='submit_button' name="Exit digitizing application" title="Exit digitizing application" onclick="javascript:exit();" >Exit<br>App</button>
+			</div>
+			<div id='status_updates' class='status_updates' >
+				<p class='status_updates' ><b>Current mouse position:</b> <span id='curr_mouse_pos' class='status_updates' ></span></p>
+				<p class='status_updates' ><b>Current zoom:</b> <span id='curr_zoom' class='status_updates' ></span></p>
+				<p class='status_updates' ><b>Current object:</b> <span id='curr_object' class='status_updates' ></span></p>
+				<p id='p_current_process' class='status_updates' ><b>Current process:</b> <span id='current_process' class='status_updates' ></span></p>
+			</div>
+		</div>
+	</body>
+</html>
+
+<script type="text/javascript">
+	if(getCookie('vis_control_vdo')){var entry_id = getCookie('vis_control_vdo');}else{var entry_id = 'collect_landmarks';}
+	if(!document.getElementById('vis_control_vdo_' + entry_id)){var entry_id = 'collect_landmarks';}
+	selectStyle(document.getElementById('vis_control_vdo_' + entry_id), 'bold');
+	selectStyle(document.getElementById('vis_control_vdo_' + entry_id), 'backgroundColor', 'orange');
+	filterViewEntries(document.getElementById('vis_control_vdo_' + entry_id),entry_id,2);
+</script>

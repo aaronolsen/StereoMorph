@@ -1,0 +1,13 @@
+basipterygoid_proc_lat_R	3091	1329
+basipterygoid_proc_post_R	3154	1304
+jugal_tubercle_R	2621	1191
+jugal_upperbeak_R	2245	1258
+nasalfrontalhinge_cranium_R	2458	1564
+opisthotic_process_R	3535	980
+otic_proc_tubercle_R	3387	1175
+postorbital_process_dist_inf_R	3093	1164
+pterygoid_palatine_R	2977	1293
+quadrate_cranium_lc_R	3450	1167
+quadrate_jugal_R	3323	944
+quadrate_pterygoid_R	3196	1090
+tomium_prox_R	2386	1179

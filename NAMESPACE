@@ -1,0 +1,10 @@
+useDynLib(StereoMorph)
+
+import(Rcpp)
+import(jpeg)
+import(bezier)
+import(grid)
+import(rjson)
+import(shiny)
+
+exportPattern("^[[:alpha:]]+")

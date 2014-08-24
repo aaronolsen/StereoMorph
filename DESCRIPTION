@@ -1,0 +1,13 @@
+Package: StereoMorph
+Title: Stereo Camera Calibration and Reconstruction
+Description: StereoMorph provides functions for the collection of 3D points and curves using a stereo camera setup.
+Version: 1.2
+Depends: R (>= 2.11.0)
+Imports: bezier (>= 1.1), grid, rjson, shiny, Rcpp (>= 0.9.9), jpeg
+LinkingTo: Rcpp
+Suggests: rgl, RUnit
+Author: Aaron Olsen, Annat Haber
+Maintainer: Aaron Olsen <aolsen@uchicago.edu>
+Repository: CRAN
+URL: http://home.uchicago.edu/~aolsen/StereoMorph/StereoMorph%20Tutorial.pdf
+License: GPL (>= 2)

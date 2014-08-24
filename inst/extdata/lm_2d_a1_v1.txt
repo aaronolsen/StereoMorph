@@ -1,0 +1,14 @@
+cranium_occipital	2128	2039
+foramen_magnum_inf	2059	1564
+foramen_magnum_sup	2091	1801
+mand_condyle_quadrate_lat_L	2426	1170
+mand_condyle_quadrate_lat_R	1646	1289
+mand_condyle_quadrate_med_L	2322	1207
+mand_condyle_quadrate_med_R	1755	1287
+occipital_condyle	2051	1528
+opisthotic_process_L	2348	1337
+opisthotic_process_R	1736	1388
+quadrate_jugal_L	2467	1253
+quadrate_jugal_R	1614	1363
+quadrate_pterygoid_L	2294	1284
+quadrate_pterygoid_R	1808	1351
