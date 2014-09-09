@@ -80,15 +80,15 @@ int pointsOnLine(int x1, int y1, int x2, int y2, std::vector<int> &row, std::vec
 	int lprow_capacity = lprow.capacity();
 
 	// FIND DISTANCE BETWEEN FIRST POINT AND SECOND POINT
-	dist_12 = std::sqrt(std::pow(x1 - x2, 2) + std::pow(y1 - y2, 2));
+	dist_12 = std::sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
 
 	for(i = 0; i < row_size; i++){
 		// FIND DISTANCE BETWEEN FIRST POINT AND ALL POINTS
-		dist_mid1 = std::sqrt(std::pow(x1 - *(row.begin() + i), 2) + std::pow(y1 - *(col.begin() + i), 2));
+		dist_mid1 = std::sqrt(std::pow(double (x1 - *(row.begin() + i)), 2) + std::pow(double (y1 - *(col.begin() + i)), 2));
 		*(dist.begin() + i) = round(dist_mid1);
 
 		// FIND DISTANCE BETWEEN SECOND POINT AND ALL POINTS
-		dist_mid2 = std::sqrt(std::pow(x2 - *(row.begin() + i), 2) + std::pow(y2 - *(col.begin() + i), 2));
+		dist_mid2 = std::sqrt(std::pow(double (x2 - *(row.begin() + i)), 2) + std::pow(double (y2 - *(col.begin() + i)), 2));
 
 		// FIND THE RATIO BETWEEN THE FIRST-MIDPOINT-LAST DISTANCE AND FIRST-LAST DISTANCE
 		*(dist_ratio.begin() + i) = (dist_mid1+dist_mid2)/dist_12;
@@ -143,13 +143,13 @@ void pointMinDistPoints(std::vector<int> row, std::vector<int> col, std::vector<
 		// FIND DISTANCES BETWEEN POINT AND ALL OTHER POINTS - BELOW CURRENT POINT		
 		for(j = 0; j < i; j++){
 			*(local_dist.begin() + j) =
-				round(std::sqrt(std::pow(*(row.begin() + i) - *(row.begin() + j), 2) + std::pow(*(col.begin() + i) - *(col.begin() + j), 2)));
+				round(std::sqrt(std::pow(double (*(row.begin() + i) - *(row.begin() + j)), 2) + std::pow(double (*(col.begin() + i) - *(col.begin() + j)), 2)));
 		}
 
 		// FIND DISTANCES BETWEEN POINT AND ALL OTHER POINTS - ABOVE CURRENT POINT		
 		for(j = i+1; j < row_size; j++){
 			*(local_dist.begin() + j) =
-				round(std::sqrt(std::pow(*(row.begin() + i) - *(row.begin() + j), 2) + std::pow(*(col.begin() + i) - *(col.begin() + j), 2)));
+				round(std::sqrt(std::pow(double (*(row.begin() + i) - *(row.begin() + j)), 2) + std::pow(double (*(col.begin() + i) - *(col.begin() + j)), 2)));
 		}
 
 //		for(int i = 0;i < local_dist.size();i++) Rcpp::Rcout << local_dist[i] << std::endl;
@@ -168,8 +168,8 @@ void pointMinDistPoints(std::vector<int> row, std::vector<int> col, std::vector<
 double quadAspectRatio(std::vector<int> &prow, std::vector<int> &pcol){
 
 	// SIDE LENGTHS
-	double side1 = std::sqrt(std::pow(prow[0] - prow[1], 2) + std::pow(pcol[0] - pcol[1], 2));
-	double side2 = std::sqrt(std::pow(prow[1] - prow[2], 2) + std::pow(pcol[1] - pcol[2], 2));
+	double side1 = std::sqrt((prow[0] - prow[1])*(prow[0] - prow[1]) + (pcol[0] - pcol[1])*(pcol[0] - pcol[1]));
+	double side2 = std::sqrt((prow[1] - prow[2])*(prow[1] - prow[2]) + (pcol[1] - pcol[2])*(pcol[1] - pcol[2]));
 
 	// FIND MIN SIDE
 	if(side1 < side2) return side1 / side2;
@@ -195,7 +195,7 @@ int pointMaxDistLine(int l1x, int l1y, int l2x, int l2y, std::vector<int> x, std
 
 	// MEASURE SUM OF DISTANCES BETWEEN TWO LINE POINTS AND EACH POINT IN VECTOR
 	for(i = 0;i < x.size();i++) dist[i] = 
-		round(std::sqrt(std::pow(l1x - x[i], 2) + std::pow(l1y - y[i], 2)) + std::sqrt(std::pow(l2x - x[i], 2) + std::pow(l2y - y[i], 2)));
+		round(std::sqrt((l1x - x[i])*(l1x - x[i]) + (l1y - y[i])*(l1y - y[i])) + std::sqrt((l2x - x[i])*(l2x - x[i]) + (l2y - y[i])*(l2y - y[i])));
 
 	// SET EXCLUDE POINTS TO 0 SO THEY WONT BE SELECTED AS MAX
 	for(i = 0;i < excl.size();i++) dist[excl[i]] = 0;
@@ -207,7 +207,7 @@ int pointMaxDistLine(int l1x, int l1y, int l2x, int l2y, std::vector<int> x, std
 void pointOnLine(int lx1, int ly1, int lx2, int ly2, int px, int py, double &lpx, double &lpy){
 	
 	// CHECK THAT POINTS DEFINING LINE ARE NOT COINCIDENT
-	double lsum = std::pow(lx2 - lx1, 2) + std::pow(ly2 - ly1, 2);
+	double lsum = (lx2 - lx1)*(lx2 - lx1) + (ly2 - ly1)*(ly2 - ly1);
 	
 	if(lsum == 0) return;
 
@@ -365,7 +365,7 @@ int pointMaxDistPoint(int px, int py, std::vector<int> x, std::vector<int> y){
 	std::vector<int> dist(x.size());
 
 	// MEASURE DISTANCES BETWEEN POINT AND EACH VECTOR POINT
-	for(i = 0;i < x.size();i++) dist[i] = round(std::sqrt(std::pow(px - x[i], 2) + std::pow(py - y[i], 2)));
+	for(i = 0;i < x.size();i++) dist[i] = round(std::sqrt((px - x[i])*(px - x[i]) + (py - y[i])*(py - y[i])));
 
 	// RETURN INDEX OF POINT VECTOR AT MAX DISTANCE
 	return std::distance(dist.begin(), max_element(dist.begin(), dist.end()));
@@ -439,10 +439,10 @@ void contourQuadApprox(std::vector<int> &prow, std::vector<int> &pcol, int &poly
 		pcol[i] = col[pkey[i]];
 
 		// ADD DISTANCE BETWEEN SUCCESSIVE POINTS
-		poly_len += round(std::sqrt(std::pow(row[pkey[i-1]] - row[pkey[i]], 2) + std::pow(col[pkey[i-1]] - col[pkey[i]], 2)));
+		poly_len += round(std::sqrt(std::pow(double (row[pkey[i-1]] - row[pkey[i]]), 2) + std::pow(double (col[pkey[i-1]] - col[pkey[i]]), 2)));
 	}
 
-	poly_len += round(std::sqrt(std::pow(row[pkey[pkey.size()-1]] - row[pkey[0]], 2) + std::pow(col[pkey[pkey.size()-1]] - col[pkey[0]], 2)));
+	poly_len += round(std::sqrt(std::pow(double (row[pkey[pkey.size()-1]] - row[pkey[0]]), 2) + std::pow(double (col[pkey[pkey.size()-1]] - col[pkey[0]]), 2)));
 }
 
 void findNextContour(Rcpp::IntegerMatrix &mat, int nrow, int ncol, std::vector<int> &row, std::vector<int> &col, int &contour_len, int &scan_start, 
@@ -723,7 +723,7 @@ Rcpp::IntegerMatrix intCornersFromQuads(Rcpp::IntegerMatrix quads, int max_dist 
 	for(i = 0; i < nrow; i++){
 
 		// REMOVE MINIMUM PAIRS WITHIN THE SAME QUAD
-		if(std::floor(min_keys[i] / 4) == std::floor(i / 4)){
+		if((min_keys[i] / 4) == (i / 4)){
 			*(dist.begin()+i) = 100000;
 			continue;
 		}
@@ -859,7 +859,7 @@ Rcpp::IntegerMatrix orderCorners(Rcpp::IntegerMatrix int_corners, int nx, int ny
 
 	// FIND DISTANCE FROM TOP LEFT POINT TO OTHER POINTS
 	for(i = 0;i < 4;i++) *(dist.begin()+i) = 
-		round(std::sqrt(std::pow(*(frow.begin()) - *(prow.begin() + i), 2) + std::pow(*(fcol.begin()) - *(pcol.begin() + i), 2)));
+		round(std::sqrt(std::pow(double (*(frow.begin()) - *(prow.begin() + i)), 2) + std::pow(double (*(fcol.begin()) - *(pcol.begin() + i)), 2)));
 
 //	for(i = 0;i < 4;i++) Rcpp::Rcout << frow[i] << ", " << fcol[i] << ": " << dist[i] << std::endl;
 
@@ -884,8 +884,8 @@ Rcpp::IntegerMatrix orderCorners(Rcpp::IntegerMatrix int_corners, int nx, int ny
 		if(dist[i] == 0) continue;
 
 		diag_dist = 
-			(std::sqrt(std::pow(frow[0] - row_mean, 2) + std::pow(fcol[0] - col_mean, 2)) + std::sqrt(std::pow(prow[i] - row_mean, 2) + std::pow(pcol[i] - col_mean, 2))) / 
-			std::sqrt(std::pow(frow[0] - prow[i], 2) + std::pow(fcol[0] - pcol[i], 2));
+			(std::sqrt(std::pow(double (frow[0] - row_mean), 2) + std::pow(double (fcol[0] - col_mean), 2)) + std::sqrt(std::pow(double (prow[i] - row_mean), 2) + std::pow(double (pcol[i] - col_mean), 2))) / 
+			std::sqrt(std::pow(double (frow[0] - prow[i]), 2) + std::pow(double (fcol[0] - pcol[i]), 2));
 
 //		Rcpp::Rcout << "i: " << i << "; " << prow[i] << ", " << pcol[i] << "; " << "diag_dist: " << diag_dist << std::endl;
 		
@@ -901,7 +901,7 @@ Rcpp::IntegerMatrix orderCorners(Rcpp::IntegerMatrix int_corners, int nx, int ny
 	n = 0;
 	n_set = 0;
 	while(n < 9){
-		ratio_threshold = 1+init_ratio_thresh*pow(10, n);
+		ratio_threshold = 1+init_ratio_thresh*pow(10.0, n);
 //		Rcpp::Rcout << "Ratio threshold: " << ratio_threshold << std::endl;
 
 		for(i = 0;i < 4;i++){
@@ -933,7 +933,7 @@ Rcpp::IntegerMatrix orderCorners(Rcpp::IntegerMatrix int_corners, int nx, int ny
 	n = 0;
 	n_set = 0;
 	while(n < 9){
-		ratio_threshold = 1+init_ratio_thresh*pow(10, n);
+		ratio_threshold = 1+init_ratio_thresh*pow(10.0, n);
 //		Rcpp::Rcout << "Ratio threshold: " << ratio_threshold << std::endl;
 
 		for(i = 0;i < 4;i++){
@@ -967,7 +967,7 @@ Rcpp::IntegerMatrix orderCorners(Rcpp::IntegerMatrix int_corners, int nx, int ny
 	n = 0;
 	while(n < 9){
 
-		ratio_threshold = 1+init_ratio_thresh*pow(10, n);
+		ratio_threshold = 1+init_ratio_thresh*pow(10.0, n);
 //		Rcpp::Rcout << "Ratio threshold: " << ratio_threshold << std::endl;
 
 		// FIND POINTS ON LINE BETWEEN FIRST POINT AND CORRESPONDING NY POINT

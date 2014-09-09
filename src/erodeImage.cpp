@@ -22,15 +22,15 @@ Rcpp::IntegerMatrix erodeImage(Rcpp::IntegerMatrix mat, int kernel, int niter) {
 	// CREATE KERNEL VECTOR
 	int kernel_sq = kernel*kernel;
 	std::vector<int> kernel_vec(kernel_sq);
-	for(i = 0; i < kernel_sq; i++) kernel_vec[i] = (i % kernel) + floor(i/kernel)*nrow;
+	for(i = 0; i < kernel_sq; i++) kernel_vec[i] = (i % kernel) + (i/kernel)*nrow;
 
 	// GET HALF KERNEL
-	int half_kernel = floor(kernel / 2);
+	int half_kernel = kernel / 2;
 	int	nrow_h = nrow-half_kernel;
 	int	ncol_h = ncol-half_kernel;
 
 	// GET MID KERNEL
-	int mid_kernel = floor(kernel_sq / 2);
+	int mid_kernel = kernel_sq / 2;
 
 	// CREATE COLUMN VECTOR
 	std::vector<int> col_vec(ncol);

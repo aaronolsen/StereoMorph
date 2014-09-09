@@ -20,14 +20,14 @@
 \docType{package}
 \title{Stereo Camera Morphometrics}
 \description{
-\strong{StereoMorph} provides functions for the collection of 3D points and curves using a stereo camera setup. \strong{StereoMorph} can also be used for collecting 2D shape data from photographs. Please see \url{http://home.uchicago.edu/~aolsen/StereoMorph/StereoMorph Tutorial.pdf} for a step-by-step tutorial on how to use \strong{StereoMorph}. Tutorials and other examples can also be found at \url{http://stereomorph.blogspot.com/}.
+\strong{StereoMorph} provides functions for the collection of 3D points and curves using a stereo camera setup. \strong{StereoMorph} can also be used for collecting 2D shape data from photographs. Please see \url{http://stereomorph.blogspot.com/p/stereomorph-10-step-tutorial.html} for a step-by-step tutorial on how to use \strong{StereoMorph}.
 }
 \details{
 \tabular{ll}{
 Package: \tab StereoMorph\cr
 Type: \tab Package\cr
-Version: \tab 1.2\cr
-Date: \tab 2014-08-23\cr
+Version: \tab 1.2.1\cr
+Date: \tab 2014-09-01\cr
 License: \tab GPL-2\cr
 }
 }

@@ -17,7 +17,7 @@ Rcpp::NumericMatrix meanBlurImage(Rcpp::NumericMatrix mat, int kernel) {
 	if(kernel % 2 == 0) kernel = kernel + 1;
 
 	// GET HALF KERNEL
-	int half_kernel = floor(kernel / 2);
+	int half_kernel = kernel / 2;
 	// Rcpp::Rcout << kernel << ' ' << half_kernel << std::endl;
 
 	// IF KERNEL IS ONE, RETURN INPUT MATRIX

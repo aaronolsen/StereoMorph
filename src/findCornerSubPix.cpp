@@ -55,11 +55,11 @@ Rcpp::NumericMatrix findCornerSubPix(Rcpp::NumericMatrix image, Rcpp::IntegerMat
 	std::vector<double> gyv(win_win);
 
 	// GET HALF WINDOW
-	int half_win = floor(win / 2);
+	int half_win = win / 2;
 
 	// CREATE WINDOW INDICES FOR ITERATING THROUGH SUBMATRIX
 	for(i = 0; i < win; i++) for(j = 0; j < win; j++) *(wvec.begin()+i+j*win) = i+j*nrow_img;
-	std::transform(wvec.begin(), wvec.end(), wvec.begin(), std::bind1st(std::plus<int>(), -*(wvec.begin()+floor((win_win)/2))));
+	std::transform(wvec.begin(), wvec.end(), wvec.begin(), std::bind1st(std::plus<int>(), -*(wvec.begin()+((win_win)/2))));
 
 	// CREATE KERNEL INDICES FOR ITERATING THROUGH WINDOW
 	for(i = 0; i < 3; i++) for(j = 0; j < 3; j++) *(kvec.begin()+i+j*3) = i+j*nrow_img;
