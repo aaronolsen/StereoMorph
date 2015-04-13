@@ -1,14 +1,12 @@
 findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify.file=NULL, 
-	perim.min = 140, perim.max = NULL, dilations.min = 0, dilations.max = 7, quad.approx.thresh = NULL,
-	print.progress=TRUE, verbose=FALSE, debug = FALSE) {
+	perim.min = 50, perim.max = NULL, dilations.min = 0, dilations.max = 7, sub.pix.win = NULL,
+	poly.cont.min=-0.1, poly.cont.max=0.2, quad.approx.thresh = NULL, print.progress = TRUE, 
+	verbose = FALSE, debug = FALSE) {
 
 	normalize_image <- FALSE
 	prev_sqr_size <- 0
 	dilations <- 3
-	poly_cont_min <- -0.1
-	poly_cont_max <- 0.2
 	poly_asp_min <- 0.05
-	sub.pix.win <- 23
 	sub.pix.max.iter <- 20
 	max.dist.int.corners <- 15
 	max.int.corner.dev <- 3
@@ -145,13 +143,15 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 			if(nx %% 2 == 0 && ny %% 2 == 1) nquads <- ((ny+1)/2)*(nx/2 + (nx/2 + 1))
 
 			# SET MAXIMUM QUAD PERIMETER
-			if(is.null(perim.max)) perim.max <- round((max(nrow, ncol) / (max(nx, ny)))*5)	
+			if(is.null(perim.max)) perim.max <- round((max(nrow, ncol) / (max(nx, ny)))*5)
 
 			# IF SPECIFIED, NORMALIZE IMAGE HISTOGRAM
 			if(normalize_image) img_gray <- equalizeImageHist(img_gray)
 
 			# GET KERNEL SIZE FOR MEAN BLUR THRESHOLD MATRIX
-			kernel <- round(min(nrow, ncol)*0.4)		
+			#kernel <- round(0.0001*(min(nrow, ncol)^2.03))
+			kernel <- round(min(nrow, ncol)*0.2)
+			if(print.progress && verbose) cat("\tMean blur threshold kernel size: ", kernel, "pixels\n")
 
 			# GET MEAN THRESHOLD MATRIX
 			mean_thresh <- meanBlurImage(mat=img_gray, kernel=kernel)
@@ -189,6 +189,9 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 
 				# FIND BOUNDARIES
 				img_boundary <- findBoundaryPoints(img_dilate)
+				
+				# TAKE INTO ACCOUNT REDUCED PERIMETER DUE TO DILATIONS
+				perim_min_red <- max(35, perim.min - perim.min*0.1*dilations)
 
 				if(debug && !is.null(verify.file)){
 					save_debug_img <- gsub('.jpg|.jpeg', '_boundaries.JPG', verify.file[image_row, image_col], ignore.case=TRUE)
@@ -198,11 +201,16 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 				# FIND QUADS
 				for(k in 1:length(quad_approx_thresh)){
 
-					quads <- generateQuads(img_dilate, img_boundary, perim.min, perim.max, poly_cont_min, poly_cont_max, poly_asp_min, quad_approx_thresh[k])
+					quads <- generateQuads(img_dilate, img_boundary, perim_min_red, perim.max, poly.cont.min, poly.cont.max, poly_asp_min, quad_approx_thresh[k])
 
 					if(nrow(quads)/4 >= nquads) break
 				}
-				if(print.progress && verbose) cat(paste0("\tNumber of quads found: ", nrow(quads)/4, "\n"))
+				if(print.progress && verbose) cat(paste0("\tNumber of quads found (perimeter range: ", perim_min_red, "-", perim.max, "): ", nrow(quads)/4, "\n"))
+
+				if(!nrow(quads)){
+					dilations <- dilations + 1
+					next
+				}
 
 				if(debug && !is.null(verify.file)){
 
@@ -236,6 +244,11 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 				# GET INTERNAL CORNERS
 				int_corners <- intCornersFromQuads(quads, max_dist=max.dist.int.corners+5*dilations)
 
+				if(length(int_corners) == 0 || sum(is.na(int_corners)) == length(int_corners)){
+					dilations <- dilations + 1
+					next
+				}
+
 				if(print.progress & verbose){
 					cat(paste0("\tNumber of internal corners expected: ", nx*ny, "\n"))
 					cat(paste0("\tNumber of internal corners found in initial search: ", nrow(int_corners), "\n"))
@@ -248,17 +261,38 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 				# REMOVE ANY INTERNAL CORNERS THAT ARE MORE THAN TWO STANDARD DEVIATIONS FROM THE MEAN IN EITHER DIMENSION
 				int_corners <- int_corners[rowSums(int_corners_dev > max.int.corner.dev) == 0, ]
 
+				if(length(int_corners) == 0 || sum(is.na(int_corners)) == length(int_corners)){
+					dilations <- dilations + 1
+					next
+				}
+				
 				# IF NUMBER OF CORNERS EXCEEDS EXPECTATION, REMOVE MOST OUTLYING EXTRA CORNERS				
 				if(nrow(int_corners) > nx*ny){
 
-					# FIT A LINE TO THE POINTS
-					lm_result <- lm(int_corners[, 2] ~ int_corners[, 1])
+					#int_corners <- int_corners[2:nrow(int_corners), ]
 
-					# FIND THE DISTANCE FROM EACH INTERNAL CORNER TO THE LINE
-					dist_line <- distancePointToLine(int_corners, l1=c(0, summary(lm_result)$coefficients[1, 1]), l2=c(1, sum(summary(lm_result)$coefficients[, 1])))
+					# USE PRINCIPAL COMPONENTS TO FIT TWO ORTHOGONAL LINES TO POINTS
+					xyCov <- cov(int_corners)
+					eigenVectors <- eigen(xyCov)$vectors
+
+					# GET POINTS TO DEFINE LINES
+					t <- seq(min(int_corners[, 1])-mean(int_corners[, 1]), max(int_corners[, 1])-mean(int_corners[, 1]), len=2)
+					pc1_x <- t + mean(int_corners[, 1])
+					pc1_y <- (eigenVectors[2,1]/eigenVectors[1,1])*t + mean(int_corners[, 2])
+					pc2_x <- t + mean(int_corners[, 1])
+					pc2_y <- (eigenVectors[2,2]/eigenVectors[1,2])*t + mean(int_corners[, 2])
+
+					# PLOT PC REGRESSION LINES
+					#plot(int_corners, xlim=c(-1000, 1000), ylim=c(-1000, 1000))
+					#lines(pc1_x, pc1_y, col='red')
+					#lines(pc2_x, pc2_y, col='blue')
+
+					# FIND THE DISTANCE FROM EACH INTERNAL CORNER TO LINES
+					dist_line <- distancePointToLine(int_corners, l1=c(pc1_x[1], pc1_y[1]), l2=c(pc1_x[2], pc1_y[2])) + 
+						distancePointToLine(int_corners, l1=c(pc2_x[1], pc2_y[1]), l2=c(pc2_x[2], pc2_y[2]))
 					
 					# FIND THE DISTANCE FROM THE MEAN
-					dist_mean <- rowSums(sqrt((int_corners - matrix(colMeans(int_corners), nrow=nrow(int_corners), ncol=2, byrow=TRUE))^2))
+					#dist_mean <- rowSums(sqrt((int_corners - matrix(colMeans(int_corners), nrow=nrow(int_corners), ncol=2, byrow=TRUE))^2))
 
 					# RANK DISTANCE FROM MEAN
 					dist_line_rank <- rank(dist_line)
@@ -271,6 +305,12 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 				}
 
 				if(print.progress & verbose) cat(paste0("\tNumber of internal corners remaining after filtering: ", nrow(int_corners), "\n"))
+
+				# IF NUMBER OF CORNERS IS LESS THAN EXPECTED
+				if(nrow(int_corners) < nx*ny){
+					dilations <- dilations + 1
+					next
+				}
 
 				# ORDER INTERNAL CORNERS
 				ordered_corners <- orderCorners(int_corners, nx, ny)
@@ -337,8 +377,15 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 					writeJPEG(img_rgb, verify.file[image_row, image_col], quality=1)
 				}
 
+				# GET WINDOW SIZE (IN PX) FOR FINDING SUBPIXEL RESOLUTION, APPROX ONE QUARTER SQUARE SIZE OR 23, WHICHEVER IS LESS
+				if(is.null(sub.pix.win)){
+					sub_pix_win <- min(round(mean(distancePointToPoint(ordered_corners[1:nx, ]))*0.2), 23)
+				}else{
+					sub_pix_win <- sub.pix.win
+				}
+				
 				# FIND CORNERS TO SUBPIXEL RESOLUTION
-				corners_subpixel <- findCornerSubPix(img_gray, ordered_corners, sub.pix.win, sub.pix.max.iter, criteria)
+				corners_subpixel <- findCornerSubPix(img_gray, ordered_corners, sub_pix_win, sub.pix.max.iter, criteria)
 
 				# REVERSE X,Y ORDER
 				corners_subpixel <- corners_subpixel[, 2:1]

@@ -32,7 +32,7 @@ For a step-by-step tutorial on how to use \code{dltReconstruct()} see \href{http
 \value{
 a list of class \code{"dltReconstruct"} with the following elements:
   \item{coor.3d}{a 2D or 3D landmark matrix.}
-  \item{rmse}{the root-mean-square reconstruction error.}
+  \item{rmse}{the root-mean-square reconstruction error (in pixels).}
 }
 \references{
 Abdel-Aziz, Y.I., Karara, H.M. (1971) Direct linear transformation into object space coordinates in close-range photogrammetry. \emph{Proc. Symp. on Close-Range Photogrammetry} (University of Illinois at Urbana-Champaign).

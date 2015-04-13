@@ -1,0 +1,23 @@
+citHeader("To cite StereoMorph in a publication use:")
+
+citEntry(entry="Article",
+	title = "StereoMorph: an R package for the collection of 3D landmarks and curves using a stereo camera set-up",
+        author = personList(as.person("AM Olsen"),as.person("MW Westneat")),
+	journal = "Methods in Ecology and Evolution",
+  	year = "2015",
+	volume = "6",
+	pages = "351-356",
+        textVersion = "Olsen Aaron M, Mark W Westneat. 2015. StereoMorph: an R package for the collection of 3D landmarks and curves using a stereo camera set-up. Methods in Ecology and Evolution 6:351-356.")
+
+citEntry(entry = "Manual",
+	title = "{StereoMorph}: Stereo Camera Calibration and Reconstruction",
+	author = c(person("Aaron", "Olsen"),
+			   person("Annat", "Haber")),
+	note = "version 1.4",
+	year = "2015",
+	url = "http://CRAN.R-project.org/package=StereoMorph",
+    textVersion  = paste("Olsen, AM & A Haber (2015).",
+        "StereoMorph: Stereo Camera Calibration and Reconstruction.",
+        "version 1.4.",
+        "http://CRAN.R-project.org/package=StereoMorph.")
+)

@@ -8,7 +8,7 @@
 \usage{
 dltMatchCurvePoints(lm.list, cal.coeff, ref.view = "max", window.size = 30, 
                     min.tangency.angle = 0.1, min.dist.adj.slope = 0.1, 
-                    plot.match = FALSE)
+                    plot.match = FALSE, fill.missing=TRUE)
 
 \method{summary}{dltMatchCurvePoints}(object, ...)
 }
@@ -20,6 +20,7 @@ dltMatchCurvePoints(lm.list, cal.coeff, ref.view = "max", window.size = 30,
   \item{min.tangency.angle}{a threshold for which parts of the curve should not be matched because they are nearly parallel to the epipolar line. See "Details".}
   \item{min.dist.adj.slope}{a threshold for which parts of the curve should not be matched because a point is not clearly the best match in comparison with neighboring points.}
   \item{plot.match}{a logical indicating whether a plot should be drawn showing the point matches between two curves. This is not optimized for visualization and might not always provide the best view of the matching results.}
+  \item{fill.missing}{a logical whether missing segments should be filled.}
   \item{object}{a list of class \code{"dltMatchCurvePoints"} (the output of \code{dltMatchCurvePoints()}).}
   \item{...}{further arguments passed to or from other methods.}
 }

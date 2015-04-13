@@ -6,8 +6,9 @@ This function finds the internal corners of a checkerboard pattern in an image.
 }
 \usage{
 findCheckerboardCorners(image.file, nx, ny, corner.file=NULL, verify.file=NULL, 
-                        perim.min = 140, perim.max = NULL, dilations.min = 0,
-                        dilations.max = 7, quad.approx.thresh = NULL,
+                        perim.min = 50, perim.max = NULL, dilations.min = 0,
+                        dilations.max = 7, sub.pix.win = NULL, poly.cont.min=-0.1, 
+                        poly.cont.max=0.2, quad.approx.thresh = NULL,
                         print.progress=TRUE, verbose=FALSE, debug = FALSE)
 }
 \arguments{
@@ -20,6 +21,9 @@ findCheckerboardCorners(image.file, nx, ny, corner.file=NULL, verify.file=NULL,
   \item{perim.max}{The maximum expected perimeter of a black square in the checkerboard pattern (in pixels).}
   \item{dilations.min}{The initial number of dilations to perform on the image. See "Details".}
   \item{dilations.max}{The maximum number of dilations to perform on the image. If equal to \code{dilations.min}, the function will only perform one dilation. See "details".}
+  \item{sub.pix.win}{The window size to use in determining the corner positions to subpixel resolution. If \code{NULL}, this is determined automatically based on the size of the found corners.}
+  \item{poly.cont.min}{The minimum allowed aspect ratio of the polygon contours, used as a threshold in identifying quadrangles.}
+  \item{poly.cont.max}{The maximum allowed aspect ratio of the polygon contours, used as a threshold in identifying quadrangles.}
   \item{quad.approx.thresh}{A threshold for the perimeter of black squares in which method to use to approximate the shape as a quadrangle.}
   \item{print.progress}{Logical indicating whether the function progress should be printed to the console. See \code{verbose}.}
   \item{verbose}{Logical indicating whether more detailed progress reports to the console. If \code{verbose} is \code{FALSE}, only the image name and whether the corners were found successfully are printed. If \code{verbose} is \code{TRUE}, the outcome of the corner search at the conclusion of each dilation is also printed.}
@@ -36,7 +40,7 @@ For every input image, the function begins by reading in the image (using \code{
 
 The function then proceeds to dilate the image (expand white areas and consolidate black areas) using a 3x3 square kernel for the range specified by \code{dilations.min} and \code{dilations.max}. This separates the black squares from each other so that their perimeters can be detected as separate contours. For each dilation, all edge points are identified (black pixels with a neighboring white pixel and vice versa) using the internal function \code{findBoundaryPoints()}. Contours (connected edge points) are identified by the internal function \code{generateQuads()}, retaining only contours that are quadrangles. The midpoints between adjoining corners of all the quads are found using the internal function \code{intCornersFromQuads()}; among these will be the full set of internal corners.
 
-If the initial set of internal corners exceeds the expectation, the internal corners are filtered, fitting a line to the internal corner set and removing the points at the furthest difference from the line of best fit until the number of corners matches the expectation. The filtered internal corner set is then ordered using the internal function \code{orderCorners()} so that first corner is the top left most corner in the pattern and the sequence of internal corners proceeds along \code{nx} first and \code{ny} second. Lastly, the function finds the internal corner positions to subpixel resolution (using the internal function \code{findCornerSubPix()}) by sampling a 23x23 pixel window around the approximate location of the internal corners to find a point optimally positioned at the intersection of diagonally opposing white and black squares. It is the sampling of this large image region (529 pixels) that allows the function to return the corner position to subpixel resolution.
+If the initial set of internal corners exceeds the expectation, the internal corners are filtered, fitting a line to the internal corner set and removing the points at the furthest difference from the line of best fit until the number of corners matches the expectation. The filtered internal corner set is then ordered using the internal function \code{orderCorners()} so that first corner is the top left most corner in the pattern and the sequence of internal corners proceeds along \code{nx} first and \code{ny} second. Lastly, the function finds the internal corner positions to subpixel resolution (using the internal function \code{findCornerSubPix()}) by sampling a window around the approximate location of the internal corners (of dimensions determined by \code{sub.pix.win}) to find a point optimally positioned at the intersection of diagonally opposing white and black squares. If determined automatically, this sampling window will usually be 23x23 pixels. It is the sampling of this large image region that allows the function to return the corner position to subpixel resolution.
 
 If \code{verify.file} is non-\code{NULL}, the internal corners are overlayed on the input image to verify that the correct corners have been found and in the correct order. The first corner is circled in red, a green line interconnects all the intermediate corners in sequence and the last corner is circled in blue (the order of colors then being RGB).
 }
@@ -55,16 +59,16 @@ fdir <- paste0(path.package("StereoMorph"), "/extdata/")
 
 ## FIND 5 X 3 INTERNAL CORNERS IN A SINGLE IMAGE
 corners <- findCheckerboardCorners(image.file=paste0(fdir, 
-     "Checkerboards/RUlna.JPG"), nx=5, ny=3)
+     "Checkerboards/RUlna.JPG"), perim.min=180, nx=5, ny=3)
 
 ## FIND 5 X 3 INTERNAL CORNERS IN ALL IMAGES IN A FOLDER (HERE 3)
 corners <- findCheckerboardCorners(image.file=paste0(fdir, 
-     "Checkerboards"), nx=5, ny=3)
+     "Checkerboards"), perim.min=180, nx=5, ny=3)
 
 ## WHICH DIMENSIONS ARE ASSIGNED TO NX AND NY IS ARBITRARY BUT REVERSING
 ## THESE WILL CHANGE THE SEQUENCE IN WHICH THE CORNERS ARE RETURNED
 corners <- findCheckerboardCorners(image.file=paste0(fdir, 
-     "Checkerboards/RUlna.JPG"), nx=3, ny=5)
+     "Checkerboards/RUlna.JPG"), perim.min=180, nx=3, ny=5)
 }
 \keyword{ grid functions }
 \keyword{ calibration }

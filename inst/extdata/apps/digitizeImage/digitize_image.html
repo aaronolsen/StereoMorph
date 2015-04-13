@@ -16,16 +16,28 @@
 			</div>
 			<div class='view_digitize_options_container'  >
 				<div  class='view_digitize_options_links' style='width:300px;' >
-					<div class='view_digitize_options' id='vis_control_vdo_info' onClick="javascript:selectStyle(this,'bold');selectStyle(this,'backgroundColor','orange');createCookie('vis_control_vdo','info');filterViewEntries(this,'info',2);" >Info</div>
+					<div class='view_digitize_options' id='vis_control_vdo_settings' onClick="javascript:selectStyle(this,'bold');selectStyle(this,'backgroundColor','orange');createCookie('vis_control_vdo','settings');filterViewEntries(this,'settings',2);" >Settings</div>
 					<div class='view_digitize_options' id='vis_control_vdo_collect_landmarks' onClick="javascript:selectStyle(this,'bold');selectStyle(this,'backgroundColor','orange');createCookie('vis_control_vdo','collect_landmarks');filterViewEntries(this,'collect_landmarks',2);" >Landmarks</div>
 					<div class='view_digitize_options' id='vis_control_vdo_collect_curves' onClick="javascript:selectStyle(this,'bold');selectStyle(this,'backgroundColor','orange');createCookie('vis_control_vdo','collect_curves');filterViewEntries(this,'collect_curves',2);" >Curves</div>
+					<div class='view_digitize_options' id='vis_control_vdo_scaling' onClick="javascript:selectStyle(this,'bold');selectStyle(this,'backgroundColor','orange');createCookie('vis_control_vdo','scaling');filterViewEntries(this,'scaling',2);" >Scaling</div>
 				</div>
 				<div class='digitize_options_container' style='' >
-					<div id='info' class='landmark_control_panel_view_entries'  >
-						<div id='info' class='image_info_div'  >
-							<p><b>Image name:</b> <span id='image_name' class='image_info' ></span></p>
-							<p><b>Image dimensions:</b> <span id='image_dimensions' class='image_info' ></span></p>
-							<p><b>Image size:</b> <span id='image_size' class='image_info' ></span></p>
+					<div id='settings' class='landmark_control_panel_view_entries'  >
+						<div class='image_settings_header' ></div>
+						<div id='settings' class='image_settings_div'  >
+							<b>Digitizing Settings</b><br />
+							<input id="auto_advance_checkbox" type="checkbox" value="1" onclick="javascript:setSettings(this);" > Auto-advance<br>
+							<br />
+							<b>Image Series Settings</b><br />
+							<input id="copy_landmarks_checkbox" type="checkbox" value="1" onclick="javascript:setSettings(this);" > Copy landmarks to next image<br>
+							<input id="copy_curves_checkbox" type="checkbox" value="1" onclick="javascript:setSettings(this);" > Copy curves to next image<br>
+							<input id="copy_ruler_points_checkbox" type="checkbox" value="1" onclick="javascript:setSettings(this);" > Copy ruler points to next image<br>
+							<input id="copy_corners_checkbox" type="checkbox" value="1" onclick="javascript:setSettings(this);" > Copy checkerboard corners to next image<br>
+							<input id="copy_scaling_checkbox" type="checkbox" value="1" onclick="javascript:setSettings(this);" > Copy scaling to next image<br>
+							<p><b>Image name:</b> <span id='image_name' class='image_settings' ></span></p>
+							<p><b>Image dimensions:</b> <span id='image_dimensions' class='image_settings' ></span></p>
+							<p><b>Image size:</b> <span id='image_size' class='image_settings' ></span></p>
+							<p><b>Image ID:</b> <span id='image_id' class='image_settings' ></span></p>
 						</div>
 					</div>
 					<div id='collect_landmarks' class='landmark_control_panel_view_entries'  >
@@ -48,6 +60,61 @@
 						</div>
 						<div id='curve_table_container' class='curve_table_container' ></div>
 					</div>				
+					<div id='scaling' class='landmark_control_panel_view_entries'  >
+						<div class='image_settings_header' ></div>
+
+						<div class='scaling_div'  >
+
+							<b>Scale shapes using ruler</b>
+
+							<div id='ruler_table' class='ruler_table' >
+								<div class='scaling_table_header' >
+									<div class='scaling_table_header_row' >
+										<div class='scaling_table_header_col1' >Ruler points</div>
+										<div class='scaling_table_header_col2' >x</div>
+										<div class='scaling_table_header_col2' >y</div>
+									</div>
+								</div>
+								<div id='ruler_table_container' class='ruler_table_container' >
+									<div id='ruler_row_0' class='scaling_table_row' onClick="javascript:selectObject('ruler', 0);" >
+										<div id='ruler_col_name_0' class='scaling_table_col1_even' >Ruler point 1</div>
+										<div id='ruler_col_x_0' class='scaling_table_col2_even' >-</div>
+										<div id='ruler_col_y_0' class='scaling_table_col2_even' >-</div>
+									</div>
+									<div id='ruler_row_1' class='scaling_table_row' onClick="javascript:selectObject('ruler', 1);" >
+										<div id='ruler_col_name_1' class='scaling_table_col1_odd' >Ruler point 2</div>
+										<div id='ruler_col_x_1' class='scaling_table_col2_odd' >-</div>
+										<div id='ruler_col_y_1' class='scaling_table_col2_odd' >-</div>
+									</div>
+								</div>
+							</div>
+
+							<b>Scale shapes using checkerboard</b>
+							<p style='margin:0px 0px 2px 0px;' >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Internal corners (row, col):</b>&nbsp;&nbsp;<input type="text" id="internal_corner_dim" name="internal_corner_dim" size="10" onkeyup="javascript:updateScaling();" onmouseout="javascript:updateScaling();" /></p>
+
+							<div style='text-align:center;height:40px;margin:5px 0px 8px 0px;'>
+								<div style='float:left;margin-left:50px;' >
+									<button id='find_checkerboard_corners' type="button" class='submit_button' name="Find checkerboard corners" title="Find checkerboard corners"  onclick="javascript:findCheckerboardCorners();" >Find<br>Checkerboard</button>
+								</div>
+								<div style='float:left;' >
+									<button id='clear_checkerboard_corners' type="button" class='submit_button' name="Clear checkerboard corners" title="Clear checkerboard corners"  onclick="javascript:clearCheckerboardCorners();" >Clear</button>
+								</div>
+							</div>
+
+							<div class='divider' ></div>
+							<div style='margin-top:8px;' ></div>
+
+							<p style='margin:0px 0px 2px 0px;' ><b>Ruler interval (units):</b>&nbsp;&nbsp;<input type="text" id="ruler_interval_world" name="ruler_interval_world" size="13" onkeyup="javascript:updateScaling();" onmouseout="javascript:updateScaling();" /></p>
+							<p style='margin:0px 0px 0px 0px;' ><b>Ruler interval (pixels):</b>&nbsp;<span id='ruler_interval_pixels' ></span></p>
+
+							<p style='margin:0px 0px 2px 0px;' ><b>Checkerboard square size (units):</b>&nbsp;&nbsp;<input type="text" id="checker_square_world" name="checker_square_world" size="13" onkeyup="javascript:updateScaling();" onmouseout="javascript:updateScaling();" /></p>
+							<p style='margin:0px 0px 5px 0px;' ><b>Checkerboard square size (pixels):</b>&nbsp;<span id='checker_square_pixel' ></span></p>
+
+							<p style='margin:0px 0px 5px 0px;' ><b>Scaling</b></p>
+							<p style='margin:0px 0px 5px 0px;' ><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pixels/units:</b>&nbsp;<span id='scaling_ppw' ></span></p>
+							<p style='margin:0px 0px 0px 0px;' ><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Units/pixels:</b>&nbsp;<span id='scaling_wpp' ></span></p>
+						</div>
+					</div>
 				</div>				
 			</div>
 			<div id='submit_links' class='submit_links'  >
@@ -69,11 +136,11 @@
 </html>
 
 <script type="text/javascript">
-	if(getCookie('vis_control_vdo')){var entry_id = getCookie('vis_control_vdo');}else{var entry_id = 'collect_landmarks';}
-	if(!document.getElementById('vis_control_vdo_' + entry_id)){var entry_id = 'collect_landmarks';}
+	if(getCookie('vis_control_vdo')){var entry_id = getCookie('vis_control_vdo');}else{var entry_id = 'settings';}
+	if(!document.getElementById('vis_control_vdo_' + entry_id)){var entry_id = 'settings';}
 	selectStyle(document.getElementById('vis_control_vdo_' + entry_id), 'bold');
 	selectStyle(document.getElementById('vis_control_vdo_' + entry_id), 'backgroundColor', 'orange');
 	filterViewEntries(document.getElementById('vis_control_vdo_' + entry_id),entry_id,2);
 </script>
 
-<img style="display:none;" id="img1" src="img/obj1_a2_v1.JPG" ></img>
+<img style="display:none;" id="img1" src="img/mug_001.jpg" ></img>

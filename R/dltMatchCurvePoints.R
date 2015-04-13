@@ -1,10 +1,9 @@
-dltMatchCurvePoints <- function(lm.list, cal.coeff, ref.view='max', window.size=30, min.tangency.angle = 0.1, min.dist.adj.slope = 0.1, plot.match = FALSE){
+dltMatchCurvePoints <- function(lm.list, cal.coeff, ref.view='max', window.size=30, min.tangency.angle = 0.1, min.dist.adj.slope = 0.1, plot.match = FALSE, fill.missing = TRUE){
 
 	min_candidate_num <- 5
 	match_slope_avgct <- 4
 	min_dist_slope_ct <- 10
 	tangency_fill_window <- 1
-	fill_missing <- TRUE
 
 	# SET WINDOW FOR DETERMINING EPIPOLAR TANGENCY ANGLE
 	window.tangency <- 5
@@ -197,7 +196,7 @@ dltMatchCurvePoints <- function(lm.list, cal.coeff, ref.view='max', window.size=
 	# PORTION OF SECOND CURVE REPRESENTED IN MATCHED POINTS (WITHOUT TANGENCY FILL)
 	portion_matched_nonref <- length(na.omit(unique(min_idx))) / nrow(lm.list[[2]])
 
-	if(fill_missing){
+	if(fill.missing){
 
 		# FIND BORDERS OF MISSING SEGMENTS
 		missing_start <- rep(NA, 0)

@@ -7,7 +7,7 @@ source(paste0('initial_parameters.R'))
 shinyUI(
 	bootstrapPage(
 		includeHTML("digitize_image.html"),
-		title='StereoMorph | Digitizing App', responsive = TRUE, theme = 'digitize_image.css',
+		title='StereoMorph | Digitizing App', theme = 'digitize_image.css',
 		textInput("text_input", label = "", value = json_string),
 		textOutput("text_output")
 	)
