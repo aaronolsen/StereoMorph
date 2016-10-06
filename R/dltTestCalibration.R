@@ -1,113 +1,144 @@
-dltTestCalibration <- function(cal.coeff, coor.2d, nx, grid.size, epipolar.reciprocal=TRUE){
+dltTestCalibration <- function(cal.coeff, coor.2d, nx, sq.size, reciprocal = TRUE, 
+	align.princomp = FALSE){
 
+	# IF SINGLE ASPECT, ADD EXTRA DIMENSION TO MAKE 4D ARRAY
 	if(length(dim(coor.2d)) == 3) coor.2d <- array(coor.2d, dim=c(dim(coor.2d)[1:2], 1, dim(coor.2d)[3]))
-
-	# REMOVE ANY SETS WITH NA
-	is_na <- apply(is.na(coor.2d), c(3, 4), 'sum')
-	is_na_rowsums <- rowSums(is_na)
-	coor.2d <- coor.2d[, , is_na_rowsums == 0, ]
-
-	# EMPTY VECTORS
-	ipd_error <- rep(NA, 0)
-	adj_pair_ipd_error <- rep(NA, 0)
-	pair_dist_all <- rep(NA, 0)
-
-	# EMPTY MATRICES
-	epipolar_error <- matrix(NA, nrow=0, ncol=dim(coor.2d)[4]-1)
-	adj_pair_mean_pos <- matrix(NA, nrow=0, ncol=3)
-	aitr_error <- matrix(NA, nrow=0, ncol=3)
-	aitr_pos <- matrix(NA, nrow=0, ncol=3)
 
 	# FIND SECOND GRID DIMENSION
 	ny <- dim(coor.2d)[1]/nx
 
-	# LOOP THROUGH EACH SET OF GRIDS
-	for(i in 1:dim(coor.2d)[3]){
+	# GET SQUARE SIZES AND UNITS
+	sq.size.num <- as.numeric(gsub('[[:alpha:], ]', '', sq.size))
+	sq.size.units <- gsub('[[:digit:]., ]', '', sq.size)
 
-		# GET 3D RECONSTRUCTED POINTS
-		dlt_reconstruct <- dltReconstruct(cal.coeff, coor.2d[, , i,])
+	# EMPTY STRUCTURES FOR RESULTS
+	ipd_error <- matrix(NA, nrow=floor((nx*ny)/2), ncol=dim(coor.2d)[3], dimnames=list(NULL, dimnames(coor.2d)[[3]]))
+	ipd <- matrix(NA, nrow=floor((nx*ny)/2), ncol=dim(coor.2d)[3], dimnames=list(NULL, dimnames(coor.2d)[[3]]))
+	epipolar_error <- matrix(NA, nrow=nx*ny, ncol=dim(coor.2d)[3], dimnames=list(NULL, dimnames(coor.2d)[[3]]))
+	aitr_dist_error <- epipolar_error
+	adj_pair_ipd_error <- matrix(NA, nrow=ny*length(seq(1, nx-1, by=2)), ncol=dim(coor.2d)[3], dimnames=list(NULL, dimnames(coor.2d)[[3]]))
+	adj_pair_mean_pos <- array(NA, dim=c(ny*length(seq(1, nx-1, by=2)), 3, dim(coor.2d)[3]), dimnames=list(NULL, c('x','y','z'), dimnames(coor.2d)[[3]]))
+	aitr_error <- array(NA, dim=c(nx*ny, 3, dim(coor.2d)[3]), dimnames=list(dimnames(coor.2d)[[1]], c('x','y','z'), dimnames(coor.2d)[[3]]))
+	aitr_pos <- aitr_error
+	aitr_centroid_dist <- matrix(NA, nrow=nx*ny, ncol=dim(coor.2d)[3], dimnames=list(NULL, dimnames(coor.2d)[[3]]))
+	adj_pair_centroid_dist <- matrix(NA, nrow=ny*length(seq(1, nx-1, by=2)), ncol=dim(coor.2d)[3], dimnames=list(NULL, dimnames(coor.2d)[[3]]))
+	aitr_rmse <- matrix(NA, nrow=3, ncol=dim(coor.2d)[3], dimnames=list(c('x','y','z'), dimnames(coor.2d)[[3]]))
+	rec_errors <- matrix(NA, nrow=dim(coor.2d)[1], ncol=dim(coor.2d)[3], dimnames=list(NULL, dimnames(coor.2d)[[3]]))
 
-		# MAKE THEORETICAL GRID OF SAME SIZE FOR ESTIMATE COMPARISON
-		coor_3d <- transformPlanarCalibrationCoordinates(tpar=rep(0, 6), nx=nx, ny=ny, sx=grid.size)
-		
-		# GET OPTIMAL POINT ALIGNMENT
-		coor_3d_unify <- findOptimalPointAlignment(dlt_reconstruct$coor.3d, coor_3d)
+	# Make 3D corner array
+	corners_3d <- array(NA, dim=c(nx*ny, 3, dim(coor.2d)[3]), 
+		dimnames=list(NULL, c('x', 'y', 'z'), dimnames(coor.2d)[[3]]))
 
-		# SAVE ERROR IN REFERENCE-ESTIMATE POINT POSITION AND POSITION OF ESTIMATE POINTS
-		aitr_error <- rbind(aitr_error, dlt_reconstruct$coor.3d - coor_3d_unify)
-		aitr_pos <- rbind(aitr_pos, coor_3d_unify)
-
-		# GENERATE RANDOM POINT PAIRS, NO POINTS ARE REPEATED
-		p_r <- 1:(nx*ny)
-		p1 <- sample(p_r, floor((nx*ny)/2), replace=F)
-		p2 <- sample(p_r[-p1], floor((nx*ny)/2), replace=F)
-		pairs <- matrix(NA, nrow=floor((nx*ny)/2), ncol=2)
-		pairs <- cbind(p1, p2)
-
-		# GET ADJOINING POINTS FOR FIRST ROW
-		x1 <- seq(1, nx-1, by=2)
-		x2 <- seq(2, nx, by=2)
-
-		# EXPAND TO NUMBER OF ROWS AND CUMULATIVE INDEX WITH EACH ROW
-		x1_m <- matrix(x1, nrow=ny, ncol=length(x1), byrow=TRUE) + nx*(0:(ny-1))
-		x2_m <- matrix(x2, nrow=ny, ncol=length(x2), byrow=TRUE) + nx*(0:(ny-1))
-
-		# GET TWO-COLUMN MATRIX OF PAIRS OF ADJOINING POINTS
-		pairs_adjoin <- cbind(matrix(t(x1_m), ncol=1), matrix(t(x2_m), ncol=1))
-
-		# FIND UNIT DISTANCE BETWEEN EACH PAIR OF POINTS
-		pair_dist <- distanceGridUnits(pairs, nx)
-		pair_dist_adjoin <- distanceGridUnits(pairs_adjoin, nx)
-	
-		# SCALE DISTANCE TO KNOWN GRID SIZE IN REAL-WORLD UNITS
-		pair_dist <- pair_dist*grid.size
-		pair_dist_adjoin <- pair_dist_adjoin*grid.size
-
-		# EPIPOLAR ERROR MATRIX
-		epipolar_error_m <- matrix(NA, nrow=dim(coor.2d)[1], ncol=dim(coor.2d)[4]-1)
-	
-		# FIND EPIPOLAR ERROR BETWEEN FIRST VIEW AND SUBSEQUENT OTHER VIEWS
-		for(k in 2:dim(coor.2d)[4]) epipolar_error_m[, k-1] <- dltEpipolarDistance(p1=coor.2d[, , i, 1], p2=coor.2d[, , i, k], cal.coeff, reciprocal=epipolar.reciprocal)
-	
-		# ADD EPIPOLAR ERRORS TO MATRIX
-		epipolar_error <- rbind(epipolar_error, epipolar_error_m)
-
-		# ADD PAIR DISTANCES TO VECTOR
-		pair_dist_all <- c(pair_dist_all, pair_dist)
-	
-		# FIND ERROR IN INTERPOINT DISTANCE
-		for(j in 1:nrow(pairs)) ipd_error <- c(ipd_error, distancePointToPoint(dlt_reconstruct$coor.3d[pairs[j, 1], ], dlt_reconstruct$coor.3d[pairs[j, 2], ]) - pair_dist[j])
-		for(j in 1:nrow(pairs_adjoin)) adj_pair_ipd_error <- c(adj_pair_ipd_error, distancePointToPoint(dlt_reconstruct$coor.3d[pairs_adjoin[j, 1], ], dlt_reconstruct$coor.3d[pairs_adjoin[j, 2], ]) - pair_dist_adjoin[j])
-
-		# GET MEAN 3D-RECONSTRUCTED POSITION OF ADJOINING PAIRS
-		for(j in 1:nrow(pairs_adjoin)) adj_pair_mean_pos <- rbind(adj_pair_mean_pos, (dlt_reconstruct$coor.3d[pairs_adjoin[j, 1], ] + dlt_reconstruct$coor.3d[pairs_adjoin[j, 2], ]) / 2)
+	# Reconstruct and fill array
+	for(aspect in 1:dim(coor.2d)[3]){
+		dlt_recon <- dltReconstruct(cal.coeff, coor.2d[, , aspect, ])
+		rec_errors[, aspect] <- dlt_recon$rmse
+		corners_3d[, , aspect] <- dlt_recon$coor.3d
 	}
 
-	# GET DISTANCE FROM CENTROID FOR ESTIMATE POINTS
-	aitr_centroid_dist <- distancePointToPoint(colMeans(aitr_pos), aitr_pos)
+	if(align.princomp){
 
-	# GET DISTANCE FROM CENTROID FOR ADJOINING PAIR MEAN POSITIONS
-	adj_pair_centroid_dist <- distancePointToPoint(colMeans(adj_pair_mean_pos), adj_pair_mean_pos)
+		# Find centers of each checkerboard
+		corners_3d_centers <- t(apply(corners_3d, 3, 'colMeans'))
 
-	# CALCULATE DISTANCE BETWEEN EACH ESTIMATED AND REFERENCE POINT
-	aitr_dist_error <- sqrt(rowSums(aitr_error^2))
+		# Find the corner centroid
+		corners_centroid <- colMeans(corners_3d_centers)
+	
+		# Center all corners about centroid
+		corners_3d <- corners_3d - array(matrix(corners_centroid, nrow=dim(corners_3d)[1], ncol=3, byrow=TRUE), dim=dim(corners_3d))
+
+		# Find centers of translated checkerboards
+		corners_3d_centers <- t(apply(corners_3d, 3, 'colMeans'))
+
+		# Find major axis of 3D points
+		pca <- princomp(corners_3d_centers)
+		prin_comp <- rbind(cprod(pca$loadings[, 'Comp.1'], pca$loadings[, 'Comp.2']), pca$loadings[, 'Comp.2'], pca$loadings[, 'Comp.1'])
+		#print(prin_comp)
+
+		# Align the principal components with z,y,x
+		RM <- tMatrixDC(prin_comp, diag(3))
+	
+		# Apply rotation matrix
+		for(aspect in 1:dim(corners_3d)[3]) corners_3d[, , aspect] <- corners_3d[, , aspect] %*% RM
+		prin_comp <- prin_comp %*% RM
+	}
+
+	# LOOP THROUGH EACH ASPECT
+	for(aspect in 1:dim(coor.2d)[3]){
+
+		## FIND ALIGNED TO IDEAL RECONSTRUCTION ERRORS
+		# MAKE THEORETICAL GRID OF SAME SIZE FOR ESTIMATE COMPARISON
+		coor_3d <- transformPlanarCalibrationCoordinates(tpar=rep(0, 6), nx=nx, ny=ny, sx=sq.size.num)
+
+		# GET OPTIMAL POINT ALIGNMENT
+		coor_3d_unify <- findOptimalPointAlignment(corners_3d[, , aspect], coor_3d)
+		
+		# SAVE 3D COORDINATE POSITIONS
+		aitr_pos[, , aspect] <- coor_3d_unify
+
+		# SAVE ERROR IN REFERENCE-ESTIMATE POINT POSITION AND POSITION OF ESTIMATE POINTS
+		aitr_error[, , aspect] <- corners_3d[, , aspect] - coor_3d_unify
+
+
+		## FIND INTERPOINT DISTANCE ERROR
+		# GENERATE RANDOM POINT PAIRS, NO POINTS ARE REPEATED
+		ipd_list <- findInterpointDistanceError(coor.3d=corners_3d[, , aspect], nx=nx, ny=ny, sq.size=sq.size.num)
+		ipd[, aspect] <- ipd_list$ipd
+		ipd_error[, aspect] <- ipd_list$ipd.error
+		adj_pair_ipd_error[, aspect] <- ipd_list$adj.pair.ipd.error
+		adj_pair_mean_pos[, , aspect] <- ipd_list$adj.pair.mean.pos
+
+		## FIND EPIPOLAR ERROR
+		# MAKE MATRIX FOR PAIRING BETWEEN FIRST AND SUBSEQUENT VIEWS
+		ee_mat <- matrix(NA, nrow=nx*ny, ncol=dim(coor.2d)[4]-1)
+
+		# FIND EPIPOLAR ERROR BETWEEN FIRST VIEW AND SUBSEQUENT OTHER VIEWS
+		for(k in 2:dim(coor.2d)[4])
+			ee_mat[, k-1] <- dltEpipolarDistance(p1=coor.2d[, , aspect, 1], p2=coor.2d[, , aspect, k], cal.coeff[, c(1,k)], reciprocal=reciprocal)
+
+		# ADD TO MATRIX
+		epipolar_error[, aspect] <- rowMeans(ee_mat)
+	}
+
+	# GET CENTROID OF AITR POINTS
+	aitr_centroid <- colMeans(apply(aitr_pos, 2, matrix, byrow=TRUE))
+
+	# GET CENTROID OF AITR POINTS
+	adj_pair_mean_centroid <- colMeans(apply(adj_pair_mean_pos, 2, matrix, byrow=TRUE))
+
+	for(aspect in 1:dim(coor.2d)[3]){
+	
+		# GET DISTANCE FROM CENTROID FOR ESTIMATE POINTS
+		aitr_centroid_dist[, aspect] <- distancePointToPoint(aitr_centroid, aitr_pos[, , aspect])
+
+		# GET DISTANCE FROM CENTROID FOR ADJOINING PAIR MEAN POSITIONS
+		adj_pair_centroid_dist[, aspect] <- distancePointToPoint(adj_pair_mean_centroid, adj_pair_mean_pos[, , aspect])
+		
+		# CALCULATE DISTANCE BETWEEN EACH ESTIMATED AND REFERENCE POINT
+		aitr_dist_error[, aspect] <- sqrt(rowSums(aitr_error[, , aspect]^2))
+
+		# CALCULATE AITR RMS ERROR FOR EACH ASPECT
+		aitr_rmse[, aspect] <- sqrt(colMeans(aitr_error[, , aspect]^2))
+	}
 
 	# CALCULATE AITR RMS ERROR FROM ALL TEST ORIENTATIONS
-	aitr_dist_rmse <- sqrt(mean(aitr_dist_error^2))
-	aitr_rmse <- sqrt(colMeans(aitr_error^2))
+	aitr_dist_rmse <- sqrt(colMeans(aitr_dist_error^2))
 
 	# CALCULATE EPIPOLAR RMS ERROR FROM ALL TEST ORIENTATIONS
-	epipolar_rmse <- sqrt(mean(rowMeans(epipolar_error)^2))
+	epipolar_rmse <- sqrt(colMeans(epipolar_error)^2)
 
 	# CALCULATE RMS ERROR OF INTERPOINT DISTANCE BASED ON ALL TEST POINT DISTANCES
-	ipd_rmse <- sqrt(mean(ipd_error^2))
+	ipd_rmse <- sqrt(colMeans(ipd_error^2))
 
 	l <- list(
-		num.grids=dim(coor.2d)[3],
+		num.aspects=dim(coor.2d)[3],
+		num.views=dim(coor.2d)[4],
+		sq.size.num=sq.size.num,
+		sq.size.units=sq.size.units,
 		epipolar.error=epipolar_error, 
 		epipolar.rmse=epipolar_rmse, 
 		ipd.error=ipd_error, 
-		pair.dist=pair_dist_all,
+		pair.dist=ipd,
 		ipd.rmse=ipd_rmse, 
 		adj.pair.ipd.error=adj_pair_ipd_error, 
 		adj.pair.mean.pos=adj_pair_mean_pos, 
@@ -117,50 +148,52 @@ dltTestCalibration <- function(cal.coeff, coor.2d, nx, grid.size, epipolar.recip
 		aitr.dist.rmse=aitr_dist_rmse,
 		aitr.rmse=aitr_rmse,
 		aitr.pos=aitr_pos,
-		aitr.centroid.dist=aitr_centroid_dist
+		aitr.centroid.dist=aitr_centroid_dist,
+		rec.error=rec_errors
 		)
 	class(l) <- 'dltTestCalibration'
 	l
 }
 
-summary.dltTestCalibration <- function(object, ...){
+summary.dltTestCalibration <- function(object, print.tab = '', ...){
+
 	r <- ''
 
-	r <- c(r, '\ndltTestCalibration Summary\n')
+	r <- c(r, '\n', print.tab, 'dltTestCalibration Summary\n')
 	
-	r <- c(r, '\tNumber of grids: ', object$num.grids, '\n')
-	r <- c(r, '\tNumber of points: ', length(object$ipd.error), '\n')
-	r <- c(r, '\tAligned ideal to reconstructed (AITR) point position errors:\n')
-	#r <- c(r, '\t\tAITR Mean Errors (X, Y, Z): ')
-	#r <- c(r, format(mean(object$aitr.error[, 1])))
-	#r <- c(r, ', ')
-	#r <- c(r, format(mean(object$aitr.error[, 2])))
-	#r <- c(r, ', ')
-	#r <- c(r, format(mean(object$aitr.error[, 3])))
-	#r <- c(r, '\n')
-	r <- c(r, '\t\tAITR RMS Errors (X, Y, Z): ')
-	r <- c(r, format(object$aitr.rmse[1]))
-	r <- c(r, ', ')
-	r <- c(r, format(object$aitr.rmse[2]))
-	r <- c(r, ', ')
-	r <- c(r, format(object$aitr.rmse[3]))
+	r <- c(r, print.tab, '\tNumber of aspects: ', object$num.aspects, '\n')
+	r <- c(r, print.tab, '\tNumber of views: ', object$num.views, '\n')
+	r <- c(r, print.tab, '\tSquare size: ', object$sq.size.num, ' ', object$sq.size.units, '\n')
+	r <- c(r, print.tab, '\tNumber of points per aspect: ', nrow(object$epipolar.error), '\n')
+	r <- c(r, print.tab, '\tAligned ideal to reconstructed (AITR) point position errors:\n')
+	r <- c(r, print.tab, '\t\tAITR RMS Errors (X, Y, Z): ')
+	r <- c(r, paste0(paste(format(rowMeans(object$aitr.rmse)), collapse=paste0(' ', object$sq.size.units, ', ')), ' ', object$sq.size.units))
 	r <- c(r, '\n')
 
-	r <- c(r, '\t\tMean AITR Distance Error: ', format(mean(object$aitr.dist.error)), '\n')
-	r <- c(r, '\t\tAITR Distance RMS Error: ', format(object$aitr.dist.rmse), '\n')
+	r <- c(r, print.tab, '\t\tMean AITR Distance Error: ', format(mean(object$aitr.dist.error)), ' ', object$sq.size.units, '\n')
+	r <- c(r, print.tab, '\t\tAITR Distance RMS Error: ', format(mean(object$aitr.dist.rmse)), ' ', object$sq.size.units, '\n')
 
-	r <- c(r, '\tInter-point distance (IPD) errors:\n')
-	r <- c(r, '\t\tIPD RMS Error: ', format(object$ipd.rmse), '\n')
-	r <- c(r, '\t\tIPD Mean Absolute Error: ', format(mean(abs(object$ipd.error))), '\n')
-	r <- c(r, '\t\tMean IPD error: ', format(mean(object$ipd.error)), '\n')
-	r <- c(r, '\tAdjacent-pair distance errors:\n')
-	r <- c(r, '\t\tMean adjacent-pair distance error: ', format(mean(object$adj.pair.ipd.error)), '\n')
-	r <- c(r, '\t\tMean adjacent-pair absolute distance error: ', format(mean(abs(object$adj.pair.ipd.error))), '\n')
-	r <- c(r, '\t\tSD of adjacent-pair distance error: ', format(sd(object$adj.pair.ipd.error)), '\n')
-	r <- c(r, '\tEpipolar errors:\n')
-	r <- c(r, '\t\tEpipolar RMS Error: ', format(object$epipolar.rmse), ' px\n')
-	r <- c(r, '\t\tEpipolar Mean Error: ', format(mean(object$epipolar.error)), ' px\n')
-	r <- c(r, '\t\tSD of Epipolar Error: ', format(sd(object$epipolar.error)), ' px\n')
+	r <- c(r, print.tab, '\tInter-point distance (IPD) errors:\n')
+	r <- c(r, print.tab, '\t\tIPD RMS Error: ', format(mean(object$ipd.rmse)), ' ', object$sq.size.units, '\n')
+	r <- c(r, print.tab, '\t\tIPD Mean Absolute Error: ', format(mean(abs(object$ipd.error))), ' ', object$sq.size.units, '\n')
+	r <- c(r, print.tab, '\t\tMean IPD error: ', format(mean(object$ipd.error)), ' ', object$sq.size.units, '\n')
+
+	r <- c(r, print.tab, '\tAdjacent-pair distance errors:\n')
+	r <- c(r, print.tab, '\t\tMean adjacent-pair distance error: ', format(mean(object$adj.pair.ipd.error)), ' ', object$sq.size.units, '\n')
+	r <- c(r, print.tab, '\t\tMean adjacent-pair absolute distance error: ', format(mean(abs(object$adj.pair.ipd.error))), ' ', object$sq.size.units, '\n')
+	r <- c(r, print.tab, '\t\tSD of adjacent-pair distance error: ', format(sd(object$adj.pair.ipd.error)), ' ', object$sq.size.units, '\n')
+
+	r <- c(r, print.tab, '\tEpipolar errors:\n')
+	r <- c(r, print.tab, '\t\tEpipolar Mean RMS Error: ', format(mean(object$epipolar.rmse, na.rm=TRUE)), ' px\n')
+	r <- c(r, print.tab, '\t\tEpipolar Mean Error: ', format(mean(object$epipolar.error, na.rm=TRUE)), ' px\n')
+	r <- c(r, print.tab, '\t\tEpipolar Max Error: ', format(max(object$epipolar.error, na.rm=TRUE)), ' px\n')
+	r <- c(r, print.tab, '\t\tSD of Epipolar Error: ', format(sd(object$epipolar.error, na.rm=TRUE)), ' px\n')
+	r <- c(r, print.tab, '\t\t95% of epipolar errors are less than: ', format(quantile(object$epipolar.error, probs=0.95, na.rm=TRUE)), ' px\n')
+
+	r <- c(r, print.tab, '\tReconstruction errors:\n')
+	r <- c(r, print.tab, '\t\tMean RMS Reconstruction Error: ', format(mean(object$rec.error, na.rm=TRUE)), ' px\n')
+	r <- c(r, print.tab, '\t\tMax RMS Reconstruction Error: ', format(max(object$rec.error, na.rm=TRUE)), ' px\n')
+	r <- c(r, print.tab, '\t\t95% of reconstruction errors are less than: ', format(quantile(object$rec.error, probs=0.95, na.rm=TRUE)), ' px\n')
 
 	class(r) <- "summary.dltTestCalibration"
 	r

@@ -11,10 +11,11 @@ Rcpp::NumericMatrix equalizeImageHist(Rcpp::NumericMatrix mat) {
 	int nrow = mat.nrow();
 	int ncol = mat.ncol();
 	int min_cdf = 1;
+	std::pointer_to_unary_function <double,double> roundObject (round) ;
 
 	// MULTIPLY BY 255 AND ROUND TO CREATE BINS
 	std::transform(mat.begin(), mat.end(), mat.begin(), std::bind1st(std::multiplies<double>(), 255));
-	std::transform(mat.begin(), mat.end(), mat.begin(), round);
+	std::transform(mat.begin(), mat.end(), mat.begin(), roundObject);
 
 	// COUNT INSTANCES OF EACH PIXEL VALUE (FREQUENCY HISTOGRAM)
 	for (i = 0; i < ncol; i++) {

@@ -7,14 +7,17 @@
 This function aligns two or more landmark sets using shared points. Corresponding landmarks are identified by matching row names. The function selects a sequence of alignments that minimizes the step-wise alignment error.
 }
 \usage{
-unifyLandmarks(lm.array, min.common = dim(lm.array)[2])
+unifyLandmarks(lm.array, min.common = dim(lm.array)[2], return.on.error = FALSE)
 
-\method{summary}{unifyLandmarks}(object, ...)
+\method{summary}{unifyLandmarks}(object, print.tab = '', verbose = TRUE, ...)
 }
 \arguments{
   \item{lm.array}{an array of 2D or 3D landmark matrices. These can be read in from a file or files using \code{\link{readLandmarksToArray}}.}
   \item{min.common}{a minimum number of landmarks to use in the alignment. Must be greater than \code{dim(lm.array)[2]}.}
+  \item{return.on.error}{Logical whether to return \code{NULL} if there are an insufficient common points for unification.}
   \item{object}{a list of class \code{"unifyLandmarks"} (the output of \code{unifyLandmarks()}).}
+  \item{print.tab}{Tabs preceding lines printed to console.}
+  \item{verbose}{Logical whether to print full error report.}
   \item{...}{further arguments passed to or from other methods.}
 }
 \details{
@@ -25,8 +28,6 @@ The input \code{lm.array} should be an array of 2D or 3D landmark matrices with 
 To align two 2D landmark sets, the sets must share at least two landmarks and to align two 3D landmark sets, the sets must share at least three landmarks. These are the default minimum number of points for alignment. A greater number of common points can be specified using the \code{min.common} parameter. Additionally, in the 3D case, these landmarks must not be collinear. If \code{lm.array} contains more than two landmark matrices, it is not necessarily required that each landmark set share these minimum number of points with every other landmark set. For example, it may be that two landmark sets do not each separately share the minimum number of landmarks required for alignment with a third landmark set. But if these two landmark sets are combined, they may then share the required number of landmarks with the third set. During each alignment step, \code{unifyLandmarks()} skips pairs of matrices that do not share the required number of landmarks. As long as there is some combination of alignments that provide a sufficient number of shared landmarks, all landmark sets can be combined into a single matrix.
 
 If an array consisting of only one landmark matrix is input, the matrix is returned without an alignment operation.
-
-For a step-by-step tutorial on how to use \code{unifyLandmarks()} see \href{http://stereomorph.blogspot.com/2014/04/unifying-reflecting-and-aligning.html}{Unifying, reflecting and aligning landmarks}.
 }
 \value{
 a list of class \code{"unifyLandmarks"} with the following elements:

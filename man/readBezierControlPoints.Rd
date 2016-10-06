@@ -17,7 +17,7 @@ The rows of each file must start with the name of the curve or spline followed b
 
 \code{tomium_R\\t100\\t200\\t300\\t100\\t400\\t300}
 
-Each Bezier curve or spline is first grouped into a list by curve name (e.g. \code{list$tomium_R}) and then by the index of the file from which it was read (e.g. \code{list$tomium_R[[1]]} from the first file). The control points are made into a matrix where the number of columns corresponds to \code{ndim}. The Bezier list structure is similar to the landmark list structure created by \code{\link{readLandmarksToList}} and can be used to generate points along a Bezier curve or spline. See the R package \href{http://cran.r-project.org/web/packages/bezier/index.html}{bezier} for more details.
+Each Bezier curve or spline is first grouped into a list by curve name (e.g. \code{list$tomium_R}) and then by the index of the file from which it was read (e.g. \code{list$tomium_R[[1]]} from the first file). The control points are made into a matrix where the number of columns corresponds to \code{ndim}. The Bezier list structure is similar to the landmark list structure created by \code{\link{readLandmarksToList}} and can be used to generate points along a Bezier curve or spline. See the R package \href{https://cran.r-project.org/package=bezier}{bezier} for more details.
 }
 \value{
 a list of Bezier control points grouped by name and file number.}

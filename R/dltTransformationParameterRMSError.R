@@ -9,10 +9,8 @@ dltTransformationParameterRMSError <- function(p, coor.2d, nx, ny, sx, sy=NULL, 
 	dlt_coefficients <- dltCoefficients(coor.3d=coor.3d, coor.2d=coor.2d)
 	#cat('\tMean RMS Error: ', round(mean(dlt_coefficients$rmse), 6), "\n", sep="")
 
-	#if(print.progress && t_iter %% 1000 == 0) cat(t_iter, ' ')
-
 	# SET MINIMIZATION ERROR
-	rmse_error <- mean(dlt_coefficients$rmse)
+	rmse_error <- mean(dlt_coefficients$rmse, na.rm=TRUE)
 
 	rmse_error
 }

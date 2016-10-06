@@ -6,9 +6,10 @@ This function finds the internal corners of a checkerboard pattern in an image.
 }
 \usage{
 findCheckerboardCorners(image.file, nx, ny, corner.file=NULL, verify.file=NULL, 
-                        perim.min = 50, perim.max = NULL, dilations.min = 0,
-                        dilations.max = 7, sub.pix.win = NULL, poly.cont.min=-0.1, 
-                        poly.cont.max=0.2, quad.approx.thresh = NULL,
+                        perim.min = 'auto', perim.max = 'auto', dilations.min = 0,
+                        dilations.max = 7, sub.pix.win = NULL, quad.fit.max=4,
+                        poly.cont.min=-0.3, poly.cont.max=0.3, 
+                        quad.approx.thresh = 'auto', flip = FALSE, 
                         print.progress=TRUE, verbose=FALSE, debug = FALSE)
 }
 \arguments{
@@ -22,9 +23,11 @@ findCheckerboardCorners(image.file, nx, ny, corner.file=NULL, verify.file=NULL,
   \item{dilations.min}{The initial number of dilations to perform on the image. See "Details".}
   \item{dilations.max}{The maximum number of dilations to perform on the image. If equal to \code{dilations.min}, the function will only perform one dilation. See "details".}
   \item{sub.pix.win}{The window size to use in determining the corner positions to subpixel resolution. If \code{NULL}, this is determined automatically based on the size of the found corners.}
+  \item{quad.fit.max}{Fit threshold used to identify quadrangles.}
   \item{poly.cont.min}{The minimum allowed aspect ratio of the polygon contours, used as a threshold in identifying quadrangles.}
   \item{poly.cont.max}{The maximum allowed aspect ratio of the polygon contours, used as a threshold in identifying quadrangles.}
   \item{quad.approx.thresh}{A threshold for the perimeter of black squares in which method to use to approximate the shape as a quadrangle.}
+  \item{flip}{Logical whether the order of the corners should be flipped.}
   \item{print.progress}{Logical indicating whether the function progress should be printed to the console. See \code{verbose}.}
   \item{verbose}{Logical indicating whether more detailed progress reports to the console. If \code{verbose} is \code{FALSE}, only the image name and whether the corners were found successfully are printed. If \code{verbose} is \code{TRUE}, the outcome of the corner search at the conclusion of each dilation is also printed.}
   \item{debug}{Logical indicating whether images should be created at each of several steps in the corner search. These will be written to the same location as the images written to \code{verify.file}. If \code{debug} is \code{TRUE}, \code{verify.file} must be defined. Additionally, \code{dilations.min} and \code{dilations.max} should be identical since debugging images are created at each dilation and will be overwritten if a range of dilations is input.}

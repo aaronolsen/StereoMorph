@@ -23,8 +23,6 @@ When using planar grid points to find an optimal stereo calibration, ensuring th
 \code{readCheckerboardsToArray()} enables correction for this by allowing users to specify whether the rows, columns or both should be reversed after the points are read from a file. If the checkerboard changes orientation within a single camera view it could be necessary to specify row and/or column reversals individually for each file. \code{col.reverse} and \code{row.reverse} can both be either a single logical, a vector of logicals or a matrix of logicals. This allows \code{col.reverse} and \code{row.reverse} to be specified for all files in a vector or matrix or for each file separately. Vector inputs of \code{col.reverse} and \code{row.reverse} with a matrix input of \code{file} will be applied to each column of \code{file} (see last example below).
 
 Row reversal means that point order is reversed along the second dimension (the order along the first dimension is kept intact). Column reversal means that point order is reversed along the first dimension (the order along the second dimension is kept intact). Setting both \code{col.reverse} and \code{row.reverse} to \code{TRUE} is equivalent to reversing the order of points from start to end (row and column structures have no effect). These operations are perhaps best understood through the examples below. For an example of the grid point ordering scheme, also see \code{\link{distanceGridUnits}}.
-
-For a step-by-step tutorial on how to automatically detect checkerboard corners in an image see \href{http://stereomorph.blogspot.com/2014/04/auto-detecting-checkerboard-corners.html}{Auto-detecting checkerboard corners}.
 }
 \value{an array of three or four dimensions.}
 \author{Aaron Olsen}

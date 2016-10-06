@@ -6,23 +6,22 @@
 \description{This function uses DLT calibration coefficients to find corresponding points along a curve viewed from two different cameras in stereo camera setup.
 }
 \usage{
-dltMatchCurvePoints(lm.list, cal.coeff, ref.view = "max", window.size = 30, 
-                    min.tangency.angle = 0.1, min.dist.adj.slope = 0.1, 
-                    plot.match = FALSE, fill.missing=TRUE)
-
-\method{summary}{dltMatchCurvePoints}(object, ...)
+dltMatchCurvePoints(lm.list, cal.coeff, min.direct.tangency = 25, 
+                    min.fill.tangency = 0, epi.err.weight = 1, 
+                    rec.err.weight = 0)
+	
+\method{summary}{dltMatchCurvePoints}(object, print.tab = '', ...)
 }
 \arguments{
   \item{lm.list}{a list of curve points from two camera views (see \code{\link{readLandmarksToList}}). \code{lm.list} can include landmarks; these will be returned unchanged.}
   \item{cal.coeff}{a two-column matrix of DLT calibration coefficients, where each column corresponds to the views from which points in \code{lm.list} were taken.}
-  \item{ref.view}{which of the two views to use as a reference. Possible values are \code{1}, \code{2}, \code{"max"} and \code{"min"}.}
-  \item{window.size}{the number of curve points to consider in each corresponding point search.}
-  \item{min.tangency.angle}{a threshold for which parts of the curve should not be matched because they are nearly parallel to the epipolar line. See "Details".}
-  \item{min.dist.adj.slope}{a threshold for which parts of the curve should not be matched because a point is not clearly the best match in comparison with neighboring points.}
-  \item{plot.match}{a logical indicating whether a plot should be drawn showing the point matches between two curves. This is not optimized for visualization and might not always provide the best view of the matching results.}
-  \item{fill.missing}{a logical whether missing segments should be filled.}
+  \item{min.direct.tangency}{Threshold (in degrees) to determine which points will be matched during initial (direct) matching. Regions of the curve that have a tangent less than this value relative to the epipolar line will be skipped.}
+  \item{min.fill.tangency}{Threshold (in degrees) to determine which points will be matched during second step (fill) of matching. Regions of the curve that have a tangent less than this value relative to the epipolar line will be skipped.}
+  \item{epi.err.weight}{Weight of epipolar error in determining matching points during second step of matching. This weight is taken relative to \code{rec.err.weight}.}
+  \item{rec.err.weight}{Weight of reconstruction error in determining matching points during second step of matching. This weight is taken relative to \code{epi.err.weight}.}
   \item{object}{a list of class \code{"dltMatchCurvePoints"} (the output of \code{dltMatchCurvePoints()}).}
-  \item{...}{further arguments passed to or from other methods.}
+  \item{print.tab}{Tabs preceding lines printed to console.}
+ \item{...}{Further arguments passed to or from other methods.}
 }
 \details{
 Point reconstruction with a stereo camera setup requires pixel coordinates of the same point in two or more camera views. Curves can also be reconstructed in a stereo camera setup if reconstructed as a series of single points. This, however, poses an additional challenge: that of identifying the same point on a curve viewed from two different perspectives. A point half-way along the curve in one view will not necessarily correspond to a point half-way along the same curve in another view. \code{dltMatchCurvePoints()} solves this challenge by using epipolar geometry informed by the DLT calibration coefficients (Yekutieli et al. 2007).
@@ -44,8 +43,6 @@ When the epipolar line is nearly parallel to the curve in the non-reference view
 When reference points are skipped, these are filled in at the end with straight lines extending between defined points to either side of the skipped regions. Straight lines are used because these regions are likely to be nearly linear, owing to their minimal deviation from the epipolar line.
 
 In addition to returning \code{match.lm.list}, \code{dltMatchCurvePoints()} also returns two vectors (or lists of vectors, depending on the format of \code{lm.list}) that can be used to assess the accuracy of the curve point matching. \code{epipolar.dist} is the epipolar distance between the epipolar line of the reference point and the corresponding point in the non-reference view. The first and last point are assumed to correspond, so there will be some epipolar error for these points. The remaining points are chosen on the epipolar line of the reference point, so their epipolar error will be zero. Future implementations may allow users to specify that corresponding points be on the curve in the second view and not necessarily on the epipolar line, in which case \code{epipolar.dist} will become more relevant. \code{curve.pt.dist} is the distance between the epipolar line and the nearest point on the curve in the second view for each curve point. If the exact same curve has been digitized in the two views, \code{curve.pt.dist} should be low (within a pixel or less).
-
-For a tutorial on how to use \code{dltMatchCurvePoints()} see \href{http://stereomorph.blogspot.com/2014/04/reconstructing-2d-points-and-curves.html}{Reconstructing 2D points and curves into 3D}.
 }
 \value{
 a list of class \code{"dltMatchCurvePoints"} with the following elements:

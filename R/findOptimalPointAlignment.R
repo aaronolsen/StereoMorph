@@ -1,4 +1,6 @@
-findOptimalPointAlignment <- function(m1, m2){
+findOptimalPointAlignment <- function(m1, m2, sign = NULL){
+	
+	# IF INPUTTING A MATRIX WITH ALL ZEROS IN ONE DIMENSION, MAKE IT M2, NOT M1
 
 	# SET INITIAL COMMON POINT MATRIX VALUES
 	m1o <- m1
@@ -20,7 +22,23 @@ findOptimalPointAlignment <- function(m1, m2){
 	L <- diag(SVD$d)
 	S <- ifelse(L<0, -1, L)
 	S <- ifelse(L>0, 1, L)
+	
+	## NEW ADDITION - WAS GIVING ZERO AT 3,3 BEFORE
+	if(!is.null(sign)){
+		if(S[3,3] == 0) S[3,3] <- sign
+		if(S[3,3] == 1 && sign == -1) S[3,3] <- sign
+	}
+
+	# GET ROTATION MATRIX
+	# MIGHT CHANGE POINTS RELATIVE TO ONE ANOTHER (VERY SLIGHTLY)
+	# I THINK IT ONLY HAPPENS WHEN ONE DIMENSION OF M1 IS ALL ZEROS
+	# CAUSES PROBLEM IN DETERMINING FIT PERHAPS
 	RM <- SVD$v %*% S %*% t(SVD$u)
+
+	# TEST ALIGNMENT
+	#t2 <- m2c %*% RM
+	#print(m1oc[!is.na(m1oc[, 1]), ])
+	#print(t2[!is.na(t2[, 1]), ])
 
 	# ROTATE ALL CENTER LANDMARKS IN M2
 	m2r <- m2c %*% RM

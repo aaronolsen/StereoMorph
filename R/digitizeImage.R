@@ -3,6 +3,18 @@ digitizeImage <- function(image.file, landmarks.file=NULL, control.points.file=N
 	control.point.color.blur = 'purple', control.point.color.focus = 'red', landmark.radius = 4, control.point.radius = 4, marker.stroke.width = 2,
 	app.dir=NULL){
 
+	# Divert to new function
+	digitizeImages(image.file=image.file, shapes.file=shapes.file, 
+		landmarks.file=landmarks.file, control.points.file=control.points.file, 
+		curve.points.file=curve.points.file, landmarks.ref=landmarks.ref, curves.ref=curves.ref, 
+		image.id=image.id, landmark.color.blur=landmark.color.blur, 
+		landmark.color.focus=landmark.color.focus, curve.color.blur=curve.color.blur, 
+		control.point.color.blur=control.point.color.blur, control.point.color.focus=control.point.color.focus, 
+		landmark.radius=landmark.radius, control.point.radius=control.point.radius, 
+		marker.stroke.width=marker.stroke.width, app.dir=app.dir)
+
+	return(1)
+
 	if(!is.null(shapes.file) && !is.null(landmarks.file)) 
 		cat("Warning: If 'shapes.file' is non-NULL, 'landmarks.file' must be NULL.\n")
 
@@ -25,7 +37,7 @@ digitizeImage <- function(image.file, landmarks.file=NULL, control.points.file=N
 
 	# IF image.file IS DIRECTORY, ADD ALL IMAGE FILES FROM DIRECTORY
 	if(length(list.files(image.file) > 0)){
-		is_image <- grepl(pattern='.jpg$|.jpeg$|.tif$|.tiff$|.png$', x=list.files(image.file), ignore.case=TRUE)
+		is_image <- grepl(pattern='[.]jpg$|[.]jpeg$|[.]tif$|[.]tiff$|[.]png$', x=list.files(image.file), ignore.case=TRUE)
 		image.file <- paste0(image.file, '/', list.files(image.file)[is_image])
 	}
 	
@@ -35,7 +47,7 @@ digitizeImage <- function(image.file, landmarks.file=NULL, control.points.file=N
 	}
 
 	# CHECK IMAGE EXTENSIONS FOR COMPATIBILITY
-	check_img_type <- grepl(pattern='.jpg$|.jpeg$|.tif$|.tiff$|.png$', x=image.file, ignore.case=TRUE)
+	check_img_type <- grepl(pattern='[.]jpg$|[.]jpeg$|[.]tif$|[.]tiff$|[.]png$', x=image.file, ignore.case=TRUE)
 	if(sum(!check_img_type) > 0) stop(paste0("Only images of type JPG, JPEG, TIF, TIFF and PNG are currently supported. The following are unsupported file types:\n\t", paste(image.file[!check_img_type], collapse="\n\t")))
 
 	# GET IMAGE NAMES
@@ -44,13 +56,13 @@ digitizeImage <- function(image.file, landmarks.file=NULL, control.points.file=N
 	for(i in 1:length(img_file_split)) img_names[i] <- img_file_split[[i]][length(img_file_split[[i]])]
 
 	# SET IMAGE IDS
-	if(is.null(image.id)) image.id <- gsub(" ", "_", gsub('.[a-zA-Z]+$', '', img_names))
+	if(is.null(image.id)) image.id <- gsub(" ", "_", gsub('[.][a-zA-Z]+$', '', img_names))
 
 	# IF ANY OF THE OUTPUT PATHS ARE DIRECTORIES, MAKE NAMES SAME AS IMAGE NAMES
-	if(sum(grepl('.txt$', shapes.file)) != length(shapes.file)) shapes.file <- paste0(shapes.file, '/', gsub('.[a-zA-Z]+$', '.txt', img_names))
-	if(sum(grepl('.txt$', landmarks.file)) != length(landmarks.file)) landmarks.file <- paste0(landmarks.file, '/', gsub('.[a-zA-Z]+$', '.txt', img_names))
-	if(sum(grepl('.txt$', control.points.file)) != length(control.points.file)) control.points.file <- paste0(control.points.file, '/', gsub('.[a-zA-Z]+$', '.txt', img_names))
-	if(sum(grepl('.txt$', curve.points.file)) != length(curve.points.file)) curve.points.file <- paste0(curve.points.file, '/', gsub('.[a-zA-Z]+$', '.txt', img_names))
+	if(sum(grepl('[.]txt$', shapes.file)) != length(shapes.file)) shapes.file <- paste0(shapes.file, '/', gsub('[.][a-zA-Z]+$', '.txt', img_names))
+	if(sum(grepl('[.]txt$', landmarks.file)) != length(landmarks.file)) landmarks.file <- paste0(landmarks.file, '/', gsub('[.][a-zA-Z]+$', '.txt', img_names))
+	if(sum(grepl('[.]txt$', control.points.file)) != length(control.points.file)) control.points.file <- paste0(control.points.file, '/', gsub('[.][a-zA-Z]+$', '.txt', img_names))
+	if(sum(grepl('[.]txt$', curve.points.file)) != length(curve.points.file)) curve.points.file <- paste0(curve.points.file, '/', gsub('[.][a-zA-Z]+$', '.txt', img_names))
 
 #	if(!is.null(landmarks.file) && length(list.files(landmarks.file) > 0)) landmarks.file <- paste0(landmarks.file, '/', gsub('.[a-zA-Z]+$', '.txt', img_names))
 #	if(!is.null(control.points.file) && length(list.files(control.points.file) > 0)) control.points.file <- paste0(control.points.file, '/', gsub('.[a-zA-Z]+$', '.txt', img_names))
@@ -134,9 +146,9 @@ digitizeImage <- function(image.file, landmarks.file=NULL, control.points.file=N
 			init_params$curve_points_file <- curve.points.file[img_num]
 
 		# GET IMAGE DIMENSIONS
-		if(grepl(pattern='.jpg$|.jpeg$', x=image.file[img_num], ignore.case=TRUE)) img_dim <- dim(readJPEG(image.file[img_num], native=TRUE))
-		if(grepl(pattern='.png$', x=image.file[img_num], ignore.case=TRUE)) img_dim <- dim(readPNG(image.file[img_num], native=TRUE))
-		if(grepl(pattern='.tif$|.tiff$', x=image.file[img_num], ignore.case=TRUE)) img_dim <- dim(readTIFF(image.file[img_num], native=TRUE))
+		if(grepl(pattern='[.]jpg$|[.]jpeg$', x=image.file[img_num], ignore.case=TRUE)) img_dim <- dim(readJPEG(image.file[img_num], native=TRUE))
+		if(grepl(pattern='[.]png$', x=image.file[img_num], ignore.case=TRUE)) img_dim <- dim(readPNG(image.file[img_num], native=TRUE))
+		if(grepl(pattern='[.]tif$|[.]tiff$', x=image.file[img_num], ignore.case=TRUE)) img_dim <- dim(readTIFF(image.file[img_num], native=TRUE))
 		
 		init_params$img_width <- img_dim[2]
 		init_params$img_height <- img_dim[1]

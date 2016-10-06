@@ -26,8 +26,6 @@ A minimum of two views is required for 3D reconstruction although additional cam
 After 3D reconstruction, \code{dltReconstruct()} performs the inverse operation, taking the reconstructed, 3D coordinates and solving for the 2D position of the points in each camera view. These inverse 2D coordinates are compared with the original coordinates and their difference is returned as the root-mean-square (RMS) reconstruction error (\code{list$rmse}). This error is similar to the epipolar distance (\code{\link{dltEpipolarDistance}}). The \code{summary()} function can be used to view the error by landmark.
 
 Currently, \code{dltReconstruct()} only works with the 11-parameter DLT model.
-
-For a step-by-step tutorial on how to use \code{dltReconstruct()} see \href{http://stereomorph.blogspot.com/2014/04/reconstructing-2d-points-and-curves.html}{Reconstructing 2D points and curves into 3D}.
 }
 \value{
 a list of class \code{"dltReconstruct"} with the following elements:

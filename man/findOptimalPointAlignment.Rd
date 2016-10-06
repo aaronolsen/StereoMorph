@@ -5,11 +5,12 @@
 This function translates and rotates one point set, optimally aligning it with another point set.
 }
 \usage{
-findOptimalPointAlignment(m1, m2)
+findOptimalPointAlignment(m1, m2, sign = NULL)
 }
 \arguments{
   \item{m1}{a point set matrix}
   \item{m2}{a second point set matrix of the same dimensions as \code{m1}}
+  \item{sign}{Used for debugging.}
 }
 \details{
 This function optimally aligns point set \code{m2} with point set \code{m1}. \code{m1} and \code{m2} must contain the exact same landmarks or points in the same order. Points present in \code{m2} but not \code{m1} should be \code{NA} in \code{m1}. They do not need to be \code{NA} in \code{m2}; all translations and rotations will be applied to all points in \code{m2} even though only shared points will be used in the alignment.
@@ -38,7 +39,7 @@ m2 <- m1
 m1[3, ] <- NA
 
 ## CENTER M2 ABOUT CE
-m2 <- m2 \%*\% rotationMatrixZYX(pi/6, -pi/3, pi/8)
+m2 <- m2 \%*\% rotationMatrixZYX_SM(pi/6, -pi/3, pi/8)
 
 ## TRANSLATE M2
 m2 <- m2 + matrix(c(2,3,4), nrow=6, ncol=3, byrow=TRUE)

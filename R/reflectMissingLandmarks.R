@@ -1,4 +1,6 @@
-reflectMissingLandmarks <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]*$)', right = '(_R|_r|_right|_RIGHT)([0-9]*$)', left.remove = '\\2', right.remove = '\\2', left.replace = '_R\\2', right.replace = '_L\\2', average = FALSE){
+reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)', 
+	right = '(_r|_right)([_]?[0-9]*$)', left.remove = '\\2', right.remove = '\\2', 
+	left.replace = '_R\\2', right.replace = '_L\\2', average = FALSE){
 	# Modified from R function OSymm() written by Annat Haber
 	# The function uses object symmetry to find the symmetry plane following
 	# Option to find average between bilateral landmarks
@@ -9,12 +11,12 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]
 
 	# ID EACH LANDMARK AS LEFT OR RIGHT
 	id_side <- rep(NA, length(rownames_lm_matrix))
-	id_side[grepl(pattern=left, x=rownames_lm_matrix)] <- 'L'
-	id_side[grepl(pattern=right, x=rownames_lm_matrix)] <- 'R'
+	id_side[grepl(pattern=left, x=rownames_lm_matrix, ignore.case=TRUE)] <- 'L'
+	id_side[grepl(pattern=right, x=rownames_lm_matrix, ignore.case=TRUE)] <- 'R'
 
 	# GET LIST OF LANDMARK NAMES WITHOUT SIDES
-	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames_lm_matrix)
-	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names)
+	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames_lm_matrix, ignore.case=TRUE)
+	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names, ignore.case=TRUE)
 
 	# PRESERVE INPUT MATRIX
 	lm_matrix <- lm.matrix
@@ -29,8 +31,8 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]
 		if(is.na(id_side[landmark_name == landmark_names])) next
 
 		# GET NEW ROWNAME
-		if(id_side[landmark_name == landmark_names] == 'R') new_rowname <- gsub(pattern=right, replacement=right.replace, x=rownames(lm_matrix)[landmark_name == landmark_names])
-		if(id_side[landmark_name == landmark_names] == 'L') new_rowname <- gsub(pattern=left, replacement=left.replace, x=rownames(lm_matrix)[landmark_name == landmark_names])			
+		if(id_side[landmark_name == landmark_names] == 'R') new_rowname <- gsub(pattern=right, replacement=right.replace, x=rownames(lm_matrix)[landmark_name == landmark_names], ignore.case=TRUE)
+		if(id_side[landmark_name == landmark_names] == 'L') new_rowname <- gsub(pattern=left, replacement=left.replace, x=rownames(lm_matrix)[landmark_name == landmark_names], ignore.case=TRUE)
 
 		# ADD ROWS TO LANDMARK MATRIX
 		new_rownames <- c(rownames(lm_matrix), new_rowname)
@@ -45,13 +47,13 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]
 	id_side <- rep(NA, length(rownames(lm_matrix)))
 
 	# ID EACH LANDMARK AS LEFT, RIGHT OR MIDLINE
-	id_side[grepl(pattern=left, x=rownames(lm_matrix))] <- 'L'
-	id_side[grepl(pattern=right, x=rownames(lm_matrix))] <- 'R'
+	id_side[grepl(pattern=left, x=rownames(lm_matrix), ignore.case=TRUE)] <- 'L'
+	id_side[grepl(pattern=right, x=rownames(lm_matrix), ignore.case=TRUE)] <- 'R'
 	id_side[is.na(id_side)] <- 'M'
 
 	# GET LIST OF LANDMARK NAMES WITHOUT SIDES
-	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames(lm_matrix))
-	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names)
+	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames(lm_matrix), ignore.case=TRUE)
+	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names, ignore.case=TRUE)
 
 	# GET UNIQUE LIST OF LANDMARK NAMES WITHOUT SIDES
 	unique_landmark_names <- unique(landmark_names)
@@ -66,8 +68,8 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]
 	rownames_r <- rownames(lm_matrix)
 
 	# SWITCH ALL LEFT LANDMARK NAMES TO RIGHT AND VICE VERSA
-	rownames_r[id_side == 'R'] <- gsub(pattern=right, replacement=right.replace, x=rownames(lm_matrix)[id_side == 'R'])
-	rownames_r[id_side == 'L'] <- gsub(pattern=left, replacement=left.replace, x=rownames(lm_matrix)[id_side == 'L'])
+	rownames_r[id_side == 'R'] <- gsub(pattern=right, replacement=right.replace, x=rownames(lm_matrix)[id_side == 'R'], ignore.case=TRUE)
+	rownames_r[id_side == 'L'] <- gsub(pattern=left, replacement=left.replace, x=rownames(lm_matrix)[id_side == 'L'], ignore.case=TRUE)
 
 	# REPLACE OLD ROWNAMES WITH SWAPPED ROWNAMES
 	rownames(lm_matrix_r) <- rownames_r
@@ -121,12 +123,12 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]
 	rownames_r <- rownames(lm_matrix_symm)
 
 	# SWITCH ALL LEFT LANDMARK NAMES TO RIGHT AND VICE VERSA
-	rownames_r[id_side == 'R'] <- gsub(pattern=right, replacement=right.replace, x=rownames(lm_matrix)[id_side == 'R'])
-	rownames_r[id_side == 'L'] <- gsub(pattern=left, replacement=left.replace, x=rownames(lm_matrix)[id_side == 'L'])
+	rownames_r[id_side == 'R'] <- gsub(pattern=right, replacement=right.replace, x=rownames(lm_matrix)[id_side == 'R'], ignore.case=TRUE)
+	rownames_r[id_side == 'L'] <- gsub(pattern=left, replacement=left.replace, x=rownames(lm_matrix)[id_side == 'L'], ignore.case=TRUE)
 
 	# REPLACE OLD ROWNAMES WITH SWAPPED ROWNAMES
 	rownames(lm_matrix_symm) <- rownames_r
-
+	
 	# UNDO REVERSE SIGN OF LANDMARKS ACROSS AN AXIS
 	lm_matrix_symm[, ncol(lm_matrix_symm)] <- -lm_matrix_symm[, ncol(lm_matrix_symm)]
 

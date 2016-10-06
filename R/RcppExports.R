@@ -25,8 +25,8 @@ findCornerSubPix <- function(image, corners, win, max_iter, criteria) {
     .Call('StereoMorph_findCornerSubPix', PACKAGE = 'StereoMorph', image, corners, win, max_iter, criteria)
 }
 
-generateQuads <- function(binary_mat, edge_mat, perim_min, perim_max, poly_cont_min, poly_cont_max, poly_asp_min, approx_thresh) {
-    .Call('StereoMorph_generateQuads', PACKAGE = 'StereoMorph', binary_mat, edge_mat, perim_min, perim_max, poly_cont_min, poly_cont_max, poly_asp_min, approx_thresh)
+generateQuads <- function(binary_mat, edge_mat, perim_min, perim_max, quad_fit_max, poly_cont_min, poly_cont_max, poly_asp_min, approx_thresh) {
+    .Call('StereoMorph_generateQuads', PACKAGE = 'StereoMorph', binary_mat, edge_mat, perim_min, perim_max, quad_fit_max, poly_cont_min, poly_cont_max, poly_asp_min, approx_thresh)
 }
 
 intCornersFromQuads <- function(quads, max_dist = 15L) {

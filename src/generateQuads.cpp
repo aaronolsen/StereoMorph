@@ -35,7 +35,17 @@ int orientation(Point p, Point q, Point r)
  
     return (val > 0)? 1: 2; // clock or counterclock wise
 }
- 
+
+double distPointToLine(int x, int y, int lx1, int ly1, int lx2, int ly2)
+{
+
+	double cprod = std::abs((double (x - lx1))*(double (y - ly2)) - (double (y - ly1))*(double (x - lx2)));
+	double lmag = std::sqrt(std::pow(double (lx2 - lx1), 2) + std::pow(double (ly2 - ly1), 2));
+
+	return cprod / lmag;
+}
+
+
 bool doIntersect(Point p1, Point q1, Point p2, Point q2)
 {
     // Find the four orientations needed for general and
@@ -142,12 +152,16 @@ void pointMinDistPoints(std::vector<int> row, std::vector<int> col, std::vector<
 
 		// FIND DISTANCES BETWEEN POINT AND ALL OTHER POINTS - BELOW CURRENT POINT		
 		for(j = 0; j < i; j++){
+			
+			// FIND DISTANCE
 			*(local_dist.begin() + j) =
 				round(std::sqrt(std::pow(double (*(row.begin() + i) - *(row.begin() + j)), 2) + std::pow(double (*(col.begin() + i) - *(col.begin() + j)), 2)));
 		}
 
 		// FIND DISTANCES BETWEEN POINT AND ALL OTHER POINTS - ABOVE CURRENT POINT		
 		for(j = i+1; j < row_size; j++){
+
+			// FIND DISTANCE
 			*(local_dist.begin() + j) =
 				round(std::sqrt(std::pow(double (*(row.begin() + i) - *(row.begin() + j)), 2) + std::pow(double (*(col.begin() + i) - *(col.begin() + j)), 2)));
 		}
@@ -186,6 +200,96 @@ int quadFillColor(Rcpp::IntegerMatrix &mat, int nrow, std::vector<int> &row, std
 	return *(mat.begin() + row_mid + col_mid*nrow);
 }
 
+double evalQuadFit(std::vector<int> &row, std::vector<int> &col, std::vector<int> &prow, std::vector<int> &pcol){
+
+	int q_i = 0;			// Initial quad vector index
+	int cql1_i = -1;		// Initial current corresponding quad line indices
+	int cql2_i = -1;		// Initial current corresponding quad line indices
+	double qdist_sum = 0;	// Cumulative sum of distances from each point to corresponding quad line
+	int qdist_ct = 0;		// Number of distances measured
+	int rpt = 0;			// Repeat count, loop is repeated twice in case quad lines do not start at first contour point
+	bool ibreak = false;	// Set internal break
+
+	int i, j;
+	int drow, dcol;
+	int add_r_it, add_c_it;
+	int max_it, qdiffsum;
+	int x, y;
+	double qdist_mean;
+
+	i = 0;
+	while(i <= (row.size()-2)){
+
+		// Get row,col points
+		drow = row[i+1]-row[i];
+		dcol = col[i+1]-col[i];
+
+		//Rcpp::Rcout << row[i] << ", " << col[i] << std::endl;
+		//Rcpp::Rcout << "\t" << drow << ", " << dcol << std::endl;
+
+		// Set magnitude to add at each iteration
+		if(drow == 0){add_r_it = 0;}else{add_r_it = copysign(1, drow);}
+		if(dcol == 0){add_c_it = 0;}else{add_c_it = copysign(1, dcol);}
+
+		// Set maximum number of iterations
+		if(i == (row.size()-2)){
+			max_it = std::max(std::abs(drow), std::abs(dcol));
+		}else{
+			max_it = std::max(std::abs(drow), std::abs(dcol)) - 1;
+		}
+
+		for(j = 0;j <= max_it;j++){
+			
+			// Find x,y coords at pixel spacing
+			x = row[i] + j*add_r_it;
+			y = col[i] + j*add_c_it;
+
+			// Find simple distance to quad point to see if it is the same point
+			qdiffsum = std::abs(prow[q_i]-x) + std::abs(pcol[q_i]-y);
+
+			//Rcpp::Rcout << "\t\t" << x << ", " << y << " (" << qdiffsum << ")" << std::endl;
+			//Rcpp::Rcout << "\t\t" << cql1_i << ", " << cql2_i << std::endl;
+
+			// Set current corresponding quad index
+			if(qdiffsum == 0){
+				cql1_i = cql1_i + 1;
+				cql2_i = cql1_i + 1;
+				if(cql1_i == 4){
+					ibreak = true;
+					break;
+				}
+				if(cql2_i == 4) cql2_i = 0;
+				q_i = q_i + 1;
+				if(q_i == 4) q_i = 0;
+			}
+
+			// Skip if no corresponding quad line points found
+			if(cql1_i == -1) continue;
+
+			// Find distance between point and quad line
+			qdist_sum += distPointToLine(x, y, prow[cql1_i], pcol[cql1_i], prow[cql2_i], pcol[cql2_i]);
+			qdist_ct++;
+		}		
+
+		if(ibreak == true) break;
+		
+		if(i == (row.size()-2)){
+			rpt++;
+			i = 0;
+		}else{
+			i++;
+		}
+		
+		if(rpt == 2) break;
+	}
+
+	qdist_mean = double (qdist_sum / qdist_ct);
+
+	//Rcpp::Rcout << qdist_sum << ", " << qdist_mean << ", " << qdist_ct << std::endl;
+
+	return qdist_mean;
+}
+
 int pointMaxDistLine(int l1x, int l1y, int l2x, int l2y, std::vector<int> x, std::vector<int> y, std::vector<int> excl){
 
 	unsigned int i;
@@ -222,7 +326,8 @@ double pointSeparationRatio(int x1, int y1, int x2, int y2, std::vector<int> x, 
 	unsigned int i;
 	int same = 0;
 	int diff = 0;
-	double lpx, lpy;
+	double lpx = 0;
+	double lpy = 0;
 	double vecx_i = 0;
 	double vecy_i = 0;
 	double vecx, vecy, min_ratio;
@@ -371,7 +476,9 @@ int pointMaxDistPoint(int px, int py, std::vector<int> x, std::vector<int> y){
 	return std::distance(dist.begin(), max_element(dist.begin(), dist.end()));
 }
 
-void contourQuadApprox(std::vector<int> &prow, std::vector<int> &pcol, int &poly_len, std::vector<int> &row, std::vector<int> &col, int num_vertices, int approx_thresh = 15, int debug = 0){
+void contourQuadApprox(std::vector<int> &prow, std::vector<int> &pcol, int &poly_len, 
+	std::vector<int> &row, std::vector<int> &col, int num_vertices, int approx_thresh = 15, 
+	int debug = 0){
 
 	int i, n, key;
 	std::vector<int> pkey(num_vertices);
@@ -462,6 +569,8 @@ void findNextContour(Rcpp::IntegerMatrix &mat, int nrow, int ncol, std::vector<i
 	unsigned int i;
 	int j, f, add;
 	int n = 0;
+	int p_inter_prev_r = 0;
+	int p_inter_prev_c = 0;
 
 	// FIND CONTOUR STARTING POINT
 	unsigned int scan_start_u = scan_start;
@@ -478,7 +587,7 @@ void findNextContour(Rcpp::IntegerMatrix &mat, int nrow, int ncol, std::vector<i
 				i = nrow_u;
 			}
 		}
-	}	
+	}
 
 	// IF NO CONTOUR START FOUND, RETURN EMPTY VECTORS AND FINAL SCAN START
 	if(row.size() == 0){
@@ -497,7 +606,7 @@ void findNextContour(Rcpp::IntegerMatrix &mat, int nrow, int ncol, std::vector<i
 	// SET START ROW FOR NEXT RUN
 	scan_start = row[0];
 
-//	Rcpp::Rcout << "Start point: " << row[0] << ' ' << col[0] << std::endl;
+	//Rcpp::Rcout << "Start point: " << row[0] << ", " << col[0] << std::endl;
 
 	// TRACE CONNECTED POINTS
 	while(contour_len < perim_max){
@@ -509,12 +618,13 @@ void findNextContour(Rcpp::IntegerMatrix &mat, int nrow, int ncol, std::vector<i
 			if(row[n-1] + p_inter[i] < 0 || row[n-1] + p_inter[i] > nrow-1) continue;
 			if(col[n-1]+p_inter[i+1] < 0 || col[n-1]+p_inter[i+1] > ncol-1) continue;
 			
-			// IF FIRST CONTOUR POINT IS NEIGHBOR POINT, RETURN CONTOUR
+			// IF NEIGHBOR POINT IS THE FIRST CONTOUR POINT SET TO RETURN CONTOUR AFTER TRYING ALL OTHER NEIGHBORS
 			if(contour_len > 2 && row[n-1]+p_inter[i] == row[0] && col[n-1]+p_inter[i+1] == col[0]){
-				if(contour_len > perim_min) return;
-				contour_len = 0;
-				return;
+				f = -1;
+				continue;
 			}
+
+			//Rcpp::Rcout << "\tTry " << p_inter[i] << ", " << p_inter[i+1] << " : " << mat(row[n-1]+p_inter[i], col[n-1]+p_inter[i+1]) << std::endl;
 
 			// IF NEIGHBOR IS NOT 1, CONTINUE
 			if(mat(row[n-1]+p_inter[i], col[n-1]+p_inter[i+1]) == 0) continue;
@@ -522,33 +632,42 @@ void findNextContour(Rcpp::IntegerMatrix &mat, int nrow, int ncol, std::vector<i
 			// SET POINT IN MATRIX TO 0
 			mat(row[n-1]+p_inter[i], col[n-1]+p_inter[i+1]) = 0;
 
-//			Rcpp::Rcout << "Next point: " << row[n-1]+p_inter[i] << ' ' << col[n-1]+p_inter[i+1] << std::endl;
+			//Rcpp::Rcout << "\tNext point: " << row[n-1]+p_inter[i] << ", " << col[n-1]+p_inter[i+1] << " (contour_len: " << contour_len << ")" << std::endl;
 
+			// ADD NEW POINT BY DEFAULT
 			add = 1;
 
-			if(n > 1){
-				if(row[n-1] + p_inter[i] == row[n-1] && row[n-1] == row[n-2]) add = 0;
-				if(col[n-1]+p_inter[i+1] == col[n-1] && col[n-1] == col[n-2]) add = 0;
-				if((col[n-1]+p_inter[i+1]) - col[n-1] == col[n-1] - col[n-2] &&
-					(row[n-1]+p_inter[i]) - row[n-1] == row[n-1] - row[n-2]) add = 0;
-			}
+			// CHECK IF NEW INTERVAL IS THE SAME AS THE PREVIOUS INTERVAL
+			if(n > 1 && p_inter[i] == p_inter_prev_r && p_inter[i+1] == p_inter_prev_c) add = 0;
 
 			if(add == 1){
+				// ADD NEW POINT
 				col.push_back(col[n-1]+p_inter[i+1]);
 				row.push_back(row[n-1]+p_inter[i]);
+				p_inter_prev_r = p_inter[i];
+				p_inter_prev_c = p_inter[i+1];
 				n++;
 			}else{
+				// INCREASE INTERVAL
 				col[n-1] = col[n-1]+p_inter[i+1];
 				row[n-1] = row[n-1]+p_inter[i];
 			}
 
-			f = 1;			
+			f = 1;
 			break;
+		}
+		
+		// IF ONE OF THE NEIGHBORS WAS THE STARTING POINT AND NO OTHER CONTOUR POINTS WERE FOUND, RETURN
+		if(f == -1){
+			//Rcpp::Rcout << "\tf == -1" << std::endl;
+			if(contour_len > perim_min) return;
+			contour_len = 0;
+			return;
 		}
 		
 		// IF NO NEXT POINT WAS FOUND THEN RETURN WITH EMPTY VECTOR
 		if(f == 0){
-//			Rcpp::Rcout << "No next point found" << std::endl;
+			//Rcpp::Rcout << "\tNo next point found" << std::endl;
 			contour_len = 0;
 			return;			
 		}
@@ -565,8 +684,9 @@ void findNextContour(Rcpp::IntegerMatrix &mat, int nrow, int ncol, std::vector<i
 }
 
 // [[Rcpp::export]]
-Rcpp::IntegerMatrix generateQuads(Rcpp::IntegerMatrix binary_mat, Rcpp::IntegerMatrix edge_mat, int perim_min, int perim_max, 
-	double poly_cont_min, double poly_cont_max, double poly_asp_min, int approx_thresh){
+Rcpp::IntegerMatrix generateQuads(Rcpp::IntegerMatrix binary_mat, Rcpp::IntegerMatrix edge_mat, 
+	int perim_min, int perim_max, double quad_fit_max, double poly_cont_min, 
+	double poly_cont_max, double poly_asp_min, int approx_thresh){
 
 	unsigned int i;
 	int scan_start = 0;
@@ -590,29 +710,14 @@ Rcpp::IntegerMatrix generateQuads(Rcpp::IntegerMatrix binary_mat, Rcpp::IntegerM
 	// DEFINE PATHS TO SEARCH FOR CONNECTED POINTS
 	std::vector<int> p_inter(16);
 
-	p_inter[0] = -1;
-	p_inter[1] = 0;
-
-	p_inter[2] = 0;
-	p_inter[3] = 1;
-
-	p_inter[4] = 1;
-	p_inter[5] = 0;
-
-	p_inter[6] = 0;
-	p_inter[7] = -1;
-
-	p_inter[8] = -1;
-	p_inter[9] = 1;
-
-	p_inter[10] = 1;
-	p_inter[11] = 1;
-
-	p_inter[12] = 1;
-	p_inter[13] = -1;
-
-	p_inter[14] = -1;
-	p_inter[15] = -1;
+	p_inter[0] = -1;p_inter[1] = 0;
+	p_inter[2] = 0;p_inter[3] = 1;
+	p_inter[4] = 1;p_inter[5] = 0;
+	p_inter[6] = 0;p_inter[7] = -1;
+	p_inter[8] = -1;p_inter[9] = 1;
+	p_inter[10] = 1;p_inter[11] = 1;
+	p_inter[12] = 1;p_inter[13] = -1;
+	p_inter[14] = -1;p_inter[15] = -1;
 
 	int n = -1;
 	while(scan_start < nrow){
@@ -621,7 +726,7 @@ Rcpp::IntegerMatrix generateQuads(Rcpp::IntegerMatrix binary_mat, Rcpp::IntegerM
 
 		// FIND NEXT CONTOUR
 		findNextContour(mat, nrow, ncol, row, col, contour_len, scan_start, perim_min, perim_max, p_inter);
-
+		
 		// IF END OF IMAGE IS REACHED, RETURN
 		if(scan_start >= nrow) break;
 
@@ -631,9 +736,26 @@ Rcpp::IntegerMatrix generateQuads(Rcpp::IntegerMatrix binary_mat, Rcpp::IntegerM
 			continue;
 		}
 
+		//for(int i = 0;i < row.size();i++) Rcpp::Rcout << row[i] << "," << col[i] << ";";
+		//Rcpp::Rcout << "n";
+
 		// CONTOUR POLYGON APPROXIMATION
 		contourQuadApprox(prow, pcol, poly_len, row, col, num_vertices, approx_thresh);
-		
+
+		// TEST WHETHER CONSECUTIVE POINTS OF POLYGON ARE THE SAME - THIS CAN HAPPEN FOR POOR FITS
+		if(prow[2] == prow[3] && pcol[2] == pcol[3]) continue;
+		if(prow[1] == prow[2] && pcol[1] == pcol[2]) continue;
+		if(prow[0] == prow[1] && pcol[0] == pcol[1]) continue;
+		if(prow[0] == prow[3] && pcol[0] == pcol[3]) continue;
+
+		//for(int i = 0;i < prow.size();i++) Rcpp::Rcout << prow[i] << "," << pcol[i] << ";";
+		//Rcpp::Rcout << "n";
+		//for(int i = 0;i < row.size();i++) Rcpp::Rcout << row[i] << "," << col[i] << ";";
+		//Rcpp::Rcout << "n";
+
+		// TEST WHETHER QUADRANGLE IS GOOD FIT TO POINTS
+		if(evalQuadFit(row, col, prow, pcol) > quad_fit_max) continue;
+
 		// GET FRACTION OF POLYGON PERIMETER VERSUS CONTOUR PERIMETER
 		poly_cont_frac = (double) (poly_len - contour_len) / contour_len;
 
@@ -646,13 +768,13 @@ Rcpp::IntegerMatrix generateQuads(Rcpp::IntegerMatrix binary_mat, Rcpp::IntegerM
 		if(poly_cont_frac < poly_cont_min || poly_cont_frac > poly_cont_max){
 //			Rcpp::Rcout << std::endl << n << ")" << std::endl;
 //			for(int i = 0;i < prow.size();i++) Rcpp::Rcout << prow[i] << " " << pcol[i] << std::endl;
+//			Rcpp::Rcout << std::endl << n << ")" << " Polygon contour (" << poly_cont_frac << ") outside thresholds" << std::endl;
 			continue;
 		}
 
 		// IF QUAD ENCLOSES WHITE, SKIP TO NEXT QUAD
 		if(quadFillColor(binary_mat, nrow, prow, pcol) == 1){
-//			Rcpp::Rcout << std::endl << n << ")" << std::endl;
-//			Rcpp::Rcout << "Quad encloses white" << std::endl;
+//			Rcpp::Rcout << std::endl << n << ")" << " Quad encloses white" << std::endl;
 			continue;
 		}
 
@@ -670,7 +792,6 @@ Rcpp::IntegerMatrix generateQuads(Rcpp::IntegerMatrix binary_mat, Rcpp::IntegerM
 			quads_row.push_back(prow[i]);
 			quads_col.push_back(pcol[i]);
 		}
-
 
 //		Rcpp::Rcout << "Contour length: " << contour_len << std::endl;
 //		Rcpp::Rcout << "Poly approx length: " << poly_len << std::endl;
@@ -722,7 +843,7 @@ Rcpp::IntegerMatrix intCornersFromQuads(Rcpp::IntegerMatrix quads, int max_dist 
 	// FILTER MINIMUM PAIRINGS
 	for(i = 0; i < nrow; i++){
 
-		// REMOVE MINIMUM PAIRS WITHIN THE SAME QUAD
+		// REMOVE MINIMUM PAIRS WITHIN THE SAME QUAD (WILL AUTOMATICALLY FLOOR WHEN DIVIDING INTEGERS)
 		if((min_keys[i] / 4) == (i / 4)){
 			*(dist.begin()+i) = 100000;
 			continue;

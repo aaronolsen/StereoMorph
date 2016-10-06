@@ -1,4 +1,4 @@
-rotationMatrixZYX <- function(t, t2=NULL, t3=NULL){
+rotationMatrixZYX_SM <- function(t, t2=NULL, t3=NULL){
 
 	if(length(t) == 1){
 		t[2] <- t2

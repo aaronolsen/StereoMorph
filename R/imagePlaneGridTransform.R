@@ -47,7 +47,3 @@ imagePlaneGridTransform <- function(p, nx, ny){
 	# RETURN AS GRID
 	grid
 }
-
-quadraticPointsOnInterval <- function(t1, t2, n, a) a*seq(0, 1, length=n)^2 + ((t2-t1) - a)*seq(0, 1, length=n) + t1
-
-imagePlaneGridTransformError <- function(p, nx, ny, grid) mean(sqrt(rowSums(grid - imagePlaneGridTransform(p, nx, ny))^2))

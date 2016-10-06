@@ -10,7 +10,7 @@ readBezierControlPoints <- function(file, ndim = 2, ...){
 		if(!file.exists(file[i])) stop(paste0("File '", file[i], "' not found."))
 	
 		# ERROR FOR EMPTY FILES
-		if(!file.info(file[i])$size) stop(paste0("File '", file[i], "' is empty."))
+		if(!file.info(file[i])$size) return(list())
 	
 		# FIND MAX NUMBER OF COLUMNS IN FILE
 		Y <- readLines(file[i], warn = FALSE, ...)

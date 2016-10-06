@@ -16,8 +16,11 @@ dltCoefficients <- function(coor.3d, coor.2d){
 
 	# LOOP THROUGH AND FIND COEFFICIENTS FOR EACH VIEW
 	for(i in 1:dim(coor.2d)[3]){
+	
+		# SKIP IF ALL NA
+		if(sum(!is.na(coor.2d[, , i])) == 0) next
 
-		if(is.null(rownames(coor.3d))){
+		if(is.null(rownames(coor.3d)) || is.null(rownames(coor.2d))){
 
 			# IF ROWNAMES ARE ABSENT ASSUME THAT ROWS CORRESPOND, FIND ROWS WHERE NEITHER NA
 			non_na <- (is.na(coor.2d[, 1, i]) == FALSE) + (is.na(coor.3d[, 1]) == FALSE) == 2
@@ -26,6 +29,7 @@ dltCoefficients <- function(coor.3d, coor.2d){
 			coor_2d <- coor.2d[non_na, , i]
 			coor_3d <- coor.3d[non_na, ]
 		}else{
+
 			# FIND COMMON POINTS BETWEEN 3D AND 2D COORDINATE SETS
 			rownames_common <- rownames(coor.3d)[rownames(coor.3d) %in% rownames(na.omit(coor.2d[, , i]))]
 	
@@ -33,7 +37,7 @@ dltCoefficients <- function(coor.3d, coor.2d){
 			coor_2d <- coor.2d[rownames_common, , i]
 			coor_3d <- coor.3d[rownames_common, ]
 		}
-
+		
 		# COEFFICIENT MATRIX
 		A <- matrix(0, 2*nrow(coor_3d), 11)
 		for(j in 1:nrow(coor_3d)){

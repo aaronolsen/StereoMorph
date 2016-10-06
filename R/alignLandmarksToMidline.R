@@ -1,4 +1,6 @@
-alignLandmarksToMidline <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]*$)', right = '(_R|_r|_right|_RIGHT)([0-9]*$)', left.remove = '\\2', right.remove = '\\2'){
+alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*$)', 
+	right = '(_r[_]?|_right[_]?)([0-9]*$)', left.remove = '\\2', right.remove = '\\2', 
+	average = FALSE){
 	# Modified from R function AMP() written by Annat Haber
 	# The function uses midline landmarks and the average of bilateral landmarks to find the midline
 	# Then aligns all landmarks to the midline
@@ -7,13 +9,13 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]
 	id_side <- rep(NA, length(rownames(lm.matrix)))
 
 	# ID EACH LANDMARK AS LEFT, RIGHT OR MIDLINE
-	id_side[grepl(pattern=left, x=rownames(lm.matrix))] <- 'L'
-	id_side[grepl(pattern=right, x=rownames(lm.matrix))] <- 'R'
+	id_side[grepl(pattern=left, x=rownames(lm.matrix), ignore.case=TRUE)] <- 'L'
+	id_side[grepl(pattern=right, x=rownames(lm.matrix), ignore.case=TRUE)] <- 'R'
 	id_side[is.na(id_side)] <- 'M'
 
 	# GET LIST OF LANDMARK NAMES WITHOUT SIDES
-	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames(lm.matrix))
-	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names)
+	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames(lm.matrix), ignore.case=TRUE)
+	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names, ignore.case=TRUE)
 
 	# GET UNIQUE LIST OF LANDMARK NAMES WITHOUT SIDES
 	unique_landmark_names <- unique(landmark_names)
@@ -42,6 +44,9 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]
 		midline_matrix <- rbind(midline_matrix, midline_landmarks)
 	}
 
+	# IF NO MIDLINE POINTS IN MATRIX, RETURN NULL
+	if(nrow(midline_matrix) == 0) return(NULL)
+
 	# FIND CENTROID OF MIDLINE LANDMARKS
 	midline_matrix_centroid <- matrix(colMeans(midline_matrix), byrow=TRUE, nrow=nrow(lm.matrix), ncol=ncol(lm.matrix))
 
@@ -53,6 +58,30 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]
 
 	# ROTATE LANDMARKS TO ALIGN WITH MID-SAGITTAL PLANE
 	lm.matrix <- lm.matrix %*% SVD$v
+	
+	if(average){
+	
+		# SET MIDLINE POINTS TO ZERO
+		lm.matrix[id_side == 'M', 3] <- 0
+		
+		lm_matrix_avg <- lm.matrix
+
+		# FIND CORRESPONDING BILATERAL LANDMARKS
+		for(i in 1:nrow(lm.matrix)){
+
+			match <- which(landmark_names[i] == landmark_names)
+
+			if(length(match) > 1){
+
+				# GET AVERAGE POSITION
+				new_pos <- colMeans(cbind(lm.matrix[match[1:2], 1:2], abs(lm.matrix[match[1:2], 3])), na.rm=TRUE)
+				lm_matrix_avg[i, ] <- c(new_pos[1:2], new_pos[3]*sign(lm.matrix[i, 3]))
+			}
+		}
+
+		# AVERAGE BILATERAL LANDMARKS
+		lm.matrix <- lm_matrix_avg
+	}
 
 	# FIND MIDLINE ERRORS
 	midline_error <- rep(NA, 0)

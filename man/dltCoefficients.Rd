@@ -17,8 +17,6 @@ dltCoefficients(coor.3d, coor.2d)
 This function takes 3D coordinates and their corresponding 2D coordinates in one or more camera views and returns DLT calibration coefficients. Note that to find the calibration coefficient for a particular camera view, only the pixel coordinates in that camera view and their corresponding 3D coordinates are used. Thus, it is possible to derive calibration coefficients for several cameras without any overlap among the views in the points used to derive the calibration coefficients. Any missing values (either in \code{coor.3d} or pixel coordinates missing in a particular view in \code{coor.2d}) can be input as \code{NA}; they will be ignored.
 
 The requirements for the structure of the \code{coor.2d} array are as follows. The first dimension of \code{coor.2d} is the number of points used in calculating the DLT coefficients. The number of elements in the first dimension of \code{coor.2d} must match the number of rows in \code{coor.3d} and these must be corresponding points (though some may be \code{NA}). The second dimension of \code{coor.2d} should be two as these are x,y-coordinates. The third dimension of \code{coor.2d} is the number of camera views. This will correspond to the number of columns in the returned calibration coefficient matrix.
-
-For more information on stereo camera calibration, see \href{http://stereomorph.blogspot.com/2014/04/calibrating-stereo-cameras.html}{Calibrating stereo cameras}.
 }
 \value{
 a list of class \code{"dltCoefficients"} with the following elements:

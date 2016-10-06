@@ -27,10 +27,6 @@ measureCheckerboardSize(corner.file, nx, ruler.file=NULL, ruler.pt.size=NULL)
 \code{ruler.file} can be a file path to a text file containing a matrix of points at equal intervals along a ruler or the matrix itself. These ruler points can be digitized from an image using the function \code{\link{digitizeImage}}. If \code{ruler.file} is \code{NULL}, then only the checkerboard square size (in the input units) is returned. All other return values are \code{NULL}. If \code{ruler.file} is non-\code{NULL}, the distance between consecutive ruler points (the ruler point interval) is estimated by fitting a model of points at a regular interval along a line (see \code{\link{gridPointsFit}}). The goodness of fit for the ruler point model can be assessed by the returned elements \code{dist.ruler.fit.mean} and \code{dist.ruler.fit.sd}. The estimated ruler point interval is used to scale the checkerboard square size to the units of \code{ruler.pt.size}.
 
 \code{ruler.pt.size} can be numeric or alphanumeric (including the units). For example, \code{'1'}, \code{'1 mm'} and \code{'1.0 mm'} are all possible inputs to \code{ruler.pt.size}. The units are automatically extracted and only used in the summary function to help interpret the function results. \code{measureCheckerboardSize()} also returns the estimated real-world size of a pixel. This represents the resolution of the camera at the surface of the checkerboard pattern.
-
-See \href{http://stereomorph.blogspot.com/2014/04/measuring-checkerboard-square-size_4.html}{Measuring checkerboard square size} for a tutorial on this function.
-
-See \href{http://stereomorph.blogspot.com/2014/04/auto-detecting-checkerboard-corners.html}{Auto-detecting checkerboard corners} for a tutorial on how to automatically detect checkerboard corners from an image.
 }
 \value{
 a list of class \code{"measureCheckerboardSize"} with the following elements:
@@ -81,6 +77,7 @@ square_size_scale <- measureCheckerboardSize(corner.file=corner_file, nx=nx,
 summary(square_size_scale)
 
 
+\dontrun{
 
 ## INPUT MATRICES DIRECTLY
 ## READ POINTS INTO MATRICES
@@ -90,7 +87,7 @@ ruler_pts <- as.matrix(read.table(ruler_file, row.names=1))
 ## ESTIMATE SQUARE SIZE AND SCALE WITH RULER POINTS
 square_size_scale <- measureCheckerboardSize(corner.file=corner_pts, nx=nx,
     ruler.file=ruler_pts, ruler.pt.size='1 mm')
-
+}
 }
 \keyword{ grid functions }
 \keyword{ calibration }

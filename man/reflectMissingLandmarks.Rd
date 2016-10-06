@@ -6,8 +6,8 @@
 \description{
 This function reflects missing bilateral landmarks across the plane of symmetry, optionally averaging left and right landmarks.}
 \usage{	
-reflectMissingLandmarks(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]*$)', 
-                        right = '(_R|_r|_right|_RIGHT)([0-9]*$)',
+reflectMissingLandmarks(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)', 
+                        right = '(_r|_right)([_]?[0-9]*$)',
                         left.remove = '\\\2', right.remove = '\\\2', 
                         left.replace = '_R\\\2', right.replace = '_L\\\2', 
                         average = FALSE)
@@ -38,8 +38,6 @@ Once corresponding right and left landmarks have been identified, the plane of o
 \code{reflectMissingLandmarks()} returns an alignment error vector. This is the error (distance) between a left or right landmark and its contralateral landmark (if present) when reflected across the midline plane. This is equivalent to the Procrustes alignment error.
 
 Users with landmark names in alternative formats might find it easier to simply add '_L' and '_R' to the end of left and right landmark names, respectively, rather than re-specifying the regular expression arguments.
-
-For a step-by-step tutorial on how to use \code{reflectMissingLandmarks()} see \href{http://stereomorph.blogspot.com/2014/04/unifying-reflecting-and-aligning.html}{Unifying, reflecting and aligning landmarks}.
 }
 \value{
 a list of class \code{"reflectMissingLandmarks"} with the following elements:

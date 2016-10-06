@@ -1,5 +1,11 @@
 resampleGridImagePoints <- function(pts, nx, rx, ry, fit.min.break=1, print.progress = FALSE){
 
+	# CHECK IF ANY VALUES ARE NA
+	if(is.na(pts[1,1])){
+		if(print.progress) cat('Error:NA\n')
+		return(list(pts=matrix(NA, nrow=rx*ry, ncol=2), error=rep(NA, rx*ry)))
+	}
+
 	# FIND SECOND GRID DIMENSION
 	ny <- dim(pts)[1]/nx
 
@@ -37,7 +43,7 @@ resampleGridImagePoints <- function(pts, nx, rx, ry, fit.min.break=1, print.prog
 	#plot(pts)
 	#points(imagePlaneGridTransform(nlm_fit$par, nx, ny), col='red')
 
-	errors <- sqrt(rowSums(pts - imagePlaneGridTransform(nlm_fit$par, nx, ny))^2)
+	errors <- sqrt(rowSums((pts - imagePlaneGridTransform(nlm_fit$par, nx, ny))^2))
 	if(print.progress) cat('; Max: ', round(max(errors), 4), ' px\n', sep='')
 
 	pts <- imagePlaneGridTransform(nlm_fit$par, nx=rx, ny=ry)

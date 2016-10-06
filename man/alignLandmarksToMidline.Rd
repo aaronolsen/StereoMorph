@@ -7,9 +7,10 @@
 This function aligns a set of bilateral landmarks to the midline plane. Midline landmarks and the mean position of bilateral landmarks are both used to define the midline plane.
 }
 \usage{	
-alignLandmarksToMidline(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]*$)', 
-                        right = '(_R|_r|_right|_RIGHT)([0-9]*$)',
-                        left.remove = '\\\2', right.remove = '\\\2')
+alignLandmarksToMidline(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*$)', 
+                        right = '(_r[_]?|_right[_]?)([0-9]*$)',
+                        left.remove = '\\\2', right.remove = '\\\2', 
+                        average = FALSE)
 
 \method{summary}{alignLandmarksToMidline}(object, ...)
 }
@@ -19,6 +20,7 @@ alignLandmarksToMidline(lm.matrix, left = '(_L|_l|_left|_LEFT)([0-9]*$)',
   \item{right}{a regular expression to identify right landmarks in the row names of \code{lm.matrix}.}
   \item{left.remove}{an expression for input to the \code{gsub()} function indicating which element of \code{left} in parentheses should be removed to create a landmark name that is not side-specific (see "Details").}
   \item{right.remove}{an expression for input to the \code{gsub()} function indicating which element of \code{right} in parentheses should be removed to create a landmark name that is not side-specific (see "Details").}
+  \item{average}{Whether to average left and right landmarks after alignment. Can be left false if landmarks previously reflected with \code{average} equal to \code{TRUE} (see \code{\link{reflectMissingLandmarks}}).}
   \item{object}{a list of class \code{"alignLandmarksToMidline"} (output of this function).}
   \item{...}{further arguments passed to or from other methods.}
 }
@@ -30,8 +32,6 @@ In order to find corresponding left and right landmarks, the function requires t
 Once corresponding right and left landmarks have been identified, the function finds the mean positions of all bilateral landmarks and the positions of all midline landmarks. These points are used to define the midline. After alignment, the specimen will have the midline axis as the last column (z in 3D, y in 2D), the longest non-midline axis as the first column (x in 3D), and the second non-midline axis as y for 3D. No further rotation and reflection is done, therefore the specimen may be facing any direction along each of the axes.
 
 This function returns the aligned landmarks and an error vector, \code{midline.error}. This is a vector of the squared z-coordinate of the midline landmarks (the distance between each midline landmark and the midline plane). If \code{\link{reflectMissingLandmarks}} was called on the landmarks prior to \code{alignLandmarksToMidline()} with \code{average} equal to \code{TRUE}, then all of the midline points will fall exactly along the midline. Thus, the error vector will consist entirely of zeros (or near-zero values).
-
-For a step-by-step tutorial on how to use \code{alignLandmarksToMidline()} see \href{http://stereomorph.blogspot.com/2014/04/unifying-reflecting-and-aligning.html}{Unifying, reflecting and aligning landmarks}.
 }
 \value{
 a list of class \code{"alignLandmarksToMidline"} with the following elements:

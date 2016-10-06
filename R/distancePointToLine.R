@@ -20,7 +20,7 @@ distancePointToLine <- function(p, l1, l2 = NULL){
 
 	# FIND SHORTEST DISTANCE BETWEEN POINT(S) AND LINE
 	d <- rep(NA, nrow(p))
-	for(i in 1:nrow(p)) d[i] <- sqrt(sum(cprod(p[i, ] - l1, p[i, ] - l2)^2)) / sqrt(sum((l2 - l1)^2))
+	for(i in 1:nrow(p)) d[i] <- sqrt(sum(cprod_SM(p[i, ] - l1, p[i, ] - l2)^2)) / sqrt(sum((l2 - l1)^2))
 
 	d
 }

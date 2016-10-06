@@ -45,7 +45,7 @@ measureCheckerboardSize <- function(corner.file, nx, ruler.file=NULL, ruler.pt.s
 
 	# GET POINT FIT
 	grid_pts_fit <- cbind(gridPointsFit(nlminb_fit_x$par, nx=nx, ny=ny), gridPointsFit(nlminb_fit_y$par, nx=nx, ny=ny))
-	dist_grid_fit <- sqrt(rowSums(corners - grid_pts_fit)^2)
+	dist_grid_fit <- sqrt(rowSums((corners - grid_pts_fit)^2))
 
 	# GET SQUARE SIZE FROM MODEL FIT
 	square_size_px <- sqrt(nlminb_fit_x$par[2]^2 + nlminb_fit_y$par[2]^2)

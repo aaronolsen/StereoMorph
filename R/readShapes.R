@@ -1,5 +1,8 @@
 readShapes <- function(file, fields=NULL){
 	
+	# REPLACE EMTPY FILE NAMES WITH DIRECTORY
+	file <- gsub('/.txt', '/', file)
+	
 	fields_internal <- fields
 	if(!is.null(fields_internal)){
 
@@ -7,9 +10,33 @@ readShapes <- function(file, fields=NULL){
 		fields_internal <- unique(c(fields, 'image.id'))
 	}
 	
-	# IF FILE IS DIRECTORY, ADD ALL FILES FROM DIRECTORY
-	if(length(file) == 1 && length(list.files(file) > 0)) file <- paste0(gsub('/+$', '', file), '/', list.files(file))
+	# IF DIRECTORY
+	if(!grepl('[.]txt$', file[1])){
 
+		# CHECK THAT DIRECTORY EXISTS
+		if(!file.exists(file)) stop(paste0("'", file, "' not found."))
+
+		# LIST FILES, IF DIRECTORY
+		file <- paste0(gsub('/+$', '', file), '/', list.files(file))
+	}
+	
+	# GET FILENAMES
+	str_split <- strsplit(file, '/')
+	last_name <- rep(NA, length(file))
+	last2_name <- rep(NA, length(file))
+	for(i in 1:length(str_split)){
+		last_name[i] <- tail(str_split[[i]], 1)
+		if(length(str_split[[i]]) > 1) last2_name[i] <- str_split[[i]][length(str_split[[i]])-1]
+	}
+	
+	if(length(unique(last_name)) == length(file)){
+		filenames <- gsub('[.]txt$', '', last_name)
+	}else if(length(unique(last2_name)) == length(file)){
+		filenames <- last2_name
+	}else{
+		filenames <- 1:length(file)
+	}
+	
 	if(length(file) == 1){
 
 		# READ SINGLE FILE
@@ -19,15 +46,18 @@ readShapes <- function(file, fields=NULL){
 	
 		dims <- list()
 		read_shapes <- list()
-		image_ids <- 1:length(file)
-
+		
 		# FIRST GET DIMENSIONS OF ALL MATRICES ACROSS FILES
 		for(i in 1:length(file)){
 
-			# READ SHAPES
-			read_shapes[[i]] <- readXML4R(file[i])$shapes
+			# READ FILE INTO LIST
+			read_xml4r <- readXML4R(file[i])
 
-			if('image.id' %in% names(read_shapes[[i]])) image_ids[i] <- read_shapes[[i]][['image.id']]
+			# SKIP IF FILE IS EMPTY (CONTAINS NO SUB-SHAPE ELEMENTS)
+			if(is.null(read_xml4r$shapes)) next
+			
+			# GET SHAPES
+			read_shapes[[i]] <- read_xml4r$shapes
 			
 			for(name in names(read_shapes[[i]])){
 				
@@ -49,7 +79,7 @@ readShapes <- function(file, fields=NULL){
 							'rownames' = c(), 'colnames' = c()
 						)
 					}
-				
+					
 					# FILL FIELDS
 					dims[[name]][['nrow']][i] <- nrow(read_shapes[[i]][[name]])
 					dims[[name]][['ncol']][i] <- ncol(read_shapes[[i]][[name]])
@@ -57,7 +87,7 @@ readShapes <- function(file, fields=NULL){
 					if(!is.null(colnames(read_shapes[[i]][[name]]))) dims[[name]][['colnames']] <- unique(c(dims[[name]][['colnames']], colnames(read_shapes[[i]][[name]])))
 				}
 
-				if(class(read_shapes[[i]][[name]]) %in% c('list')){
+				if(class(read_shapes[[i]][[name]]) %in% c('list') && length(read_shapes[[i]][[name]]) > 0){
 					dims[[name]] <- list('type' = 'list', 'length' = length(file))
 				}
 			}
@@ -68,10 +98,12 @@ readShapes <- function(file, fields=NULL){
 		for(name in names(dims)){
 
 			if(!is.null(fields_internal)) if(!name %in% fields_internal) next
+			
+			if(length(dims[[name]]) == 0) next
 
 			if(dims[[name]][['type']] == 'vector'){
 				rlist[[name]] <- rep(NA, length(file))
-				names(rlist[[name]]) <- image_ids
+				names(rlist[[name]]) <- filenames
 			}
 				
 			if(dims[[name]][['type']] == 'matrix'){
@@ -85,7 +117,7 @@ readShapes <- function(file, fields=NULL){
 				if(!is.null(dims[[name]][['colnames']])) ncol <- length(dims[[name]][['colnames']])
 
 				# CREATE ARRAY
-				rlist[[name]] <- array(NA, dim=c(nrow, ncol, length(file)), dimnames=list(dims[[name]][['rownames']], dims[[name]][['colnames']], image_ids))
+				rlist[[name]] <- array(NA, dim=c(nrow, ncol, length(file)), dimnames=list(dims[[name]][['rownames']], dims[[name]][['colnames']], filenames))
 			}
 
 			if(dims[[name]][['type']] == 'list'){
@@ -93,12 +125,16 @@ readShapes <- function(file, fields=NULL){
 				rlist[[name]] <- list()
 			}
 		}
-
+		
 		# FILL RETURN LIST
 		for(i in 1:length(read_shapes)){
 		
-			for(name in names(read_shapes[[i]])){
+			for(name in names(rlist)){
 			
+				if(is.null(read_shapes[[i]][[name]])) next
+
+				if(length(read_shapes[[i]][[name]]) == 0) next
+				
 				if(!is.null(fields_internal)) if(!name %in% fields_internal) next
 
 				if(dims[[name]][['type']] == 'vector') rlist[[name]][i] <- read_shapes[[i]][[name]]
@@ -110,21 +146,30 @@ readShapes <- function(file, fields=NULL){
 
 					col_idx <- 1:ncol(read_shapes[[i]][[name]])
 					if(!is.null(colnames(read_shapes[[i]][[name]]))) col_idx <- colnames(read_shapes[[i]][[name]])
-					
+
 					# COPY IN VALUES
 					rlist[[name]][row_idx, col_idx, i] <- read_shapes[[i]][[name]][row_idx, col_idx]
 				}
 
-				if(dims[[name]][['type']] == 'list') rlist[[name]][[image_ids[i]]] <- read_shapes[[i]][[name]]
+				if(dims[[name]][['type']] == 'list'){
+					if(length(read_shapes[[i]][[name]]) == 0){
+						rlist[[name]][[filenames[i]]] <- NULL
+					}else{
+						rlist[[name]][[filenames[i]]] <- read_shapes[[i]][[name]]
+					}
+				}
 			}
 		}
 	}
+
+	# REMOVE EMPTY LISTS
+	#for(name in names(rlist)) if(is.list(rlist[[name]]) && length(rlist[[name]])) rlist[[name]] <- NULL
 
 	# REMOVE OBJECTS NOT IN FIELDS
 	if(!is.null(fields)) for(name in names(rlist)) if(!name %in% fields) rlist[[name]] <- NULL
 	for(name in names(rlist)) if(length(rlist[[name]]) == 0) rlist[[name]] <- NULL
 
-	class(rlist) <- 'shapes'
+	if(!is.null(rlist)) class(rlist) <- 'shapes'
 	rlist
 }
 
@@ -134,7 +179,7 @@ print.shapes <- function(x, ...){
 	r <- c(r, '\nShapes\n')
 
 	vector_limit <- 3
-	vector_names <- c('image.name', 'image.id', 'scaling', 'scaling.units', 'ruler.pixel', 'ruler.interval', 
+	vector_names <- c('image.id', 'scaling', 'scaling.units', 'ruler.pixel', 'ruler.interval', 
 		'checkerboard.nx', 'checkerboard.ny', 'square.pixel', 'square.size')
 
 	for(vector_name in vector_names){
@@ -149,7 +194,7 @@ print.shapes <- function(x, ...){
 	}
 
 	matrix_limit <- 3
-	matrix_names <- c('landmarks.pixel', 'landmarks.scaled', 'ruler.points', 'checker.pixel')
+	matrix_names <- c('landmarks', 'landmarks.pixel', 'landmarks.scaled', 'ruler.points', 'checker.pixel')
 
 	for(matrix_name in matrix_names){
 
@@ -180,7 +225,7 @@ print.shapes <- function(x, ...){
 	}
 
 	list_limit <- 3
-	list_names <- c('curves.control', 'curves.pixel', 'curves.scaled')
+	list_names <- c('curves.control', 'curves.pixel', 'curves.scaled', 'curves')
 	for(list_name in list_names){
 
 		if(is.null(x[[list_name]])) next

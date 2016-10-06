@@ -1,16 +1,19 @@
 dltCalibrateCameras <- function(coor.2d, nx, grid.size, c.run = FALSE, reduce.grid.dim = 3, 
 	fit.min.break = 1, nlm.iter.max.init = 100, objective.min.init = 10, 
-	nlm.eval.max = 350, nlm.iter.max = 250, nlm.calls.max = 100,
-	objective.min = 1, grid.incl.min=2, start.param=NULL,
-	print.progress = FALSE){
-                    
-	#nlm.iter.max.init <- NULL
-	#objective.min.init <- 0
+	nlm.eval.max = 350, nlm.iter.max = 250, nlm.calls.max = 100, min.views = 'max', 
+	objective.min = 1, grid.incl.min = 2, objective.min.break = NULL, start.param = NULL, 
+	sx = NULL, sy = NULL, print.progress = FALSE, print.tab = ''){
 
-	# REMOVE ANY SETS WITH NA
-	is_na <- apply(is.na(coor.2d), c(3, 4), 'sum')
-	is_na_rowsums <- rowSums(is_na)
-	coor.2d <- coor.2d[, , is_na_rowsums == 0, ]	
+	# objective.min.break OBJECTIVE AT WHICH TO STOP ADDING CHECKERBOARDS AND START OVER WITH NEW SET
+
+	# SET MIN NUMBER OF VIEWS TO USE IN ESTIMATING CALIBRATION COEFFICIENTS
+	if(min.views == 'max'){min_views <- dim(coor.2d)[4]}else{min_views <- min.views}
+
+	# FIND NUMBER OF NON-NA VIEWS FOR EACH ASPECT
+	aspect_non_na <- rowSums(apply(!is.na(coor.2d), c(3, 4), 'sum') > 0)
+
+	# REMOVE SETS WITH LESS THAN THE MINIMUM NUMBER OF VIEWS
+	coor.2d <- coor.2d[, , aspect_non_na >= min_views, ]
 
 	# FIND SECOND GRID DIMENSION
 	ny <- dim(coor.2d)[1]/nx
@@ -26,63 +29,59 @@ dltCalibrateCameras <- function(coor.2d, nx, grid.size, c.run = FALSE, reduce.gr
 		ry <- reduce.grid.dim
 		
 		# SET REDUCED GRID SIZES
-		sx <- ((nx-1)*grid.size) / (rx-1)
-		sy <- ((ny-1)*grid.size) / (ry-1)
+		sx <- ((nx-1)*grid.size[1]) / (rx-1)
+		sy <- ((ny-1)*grid.size[1]) / (ry-1)
 
 		# EMPTY REDUCED GRID DIMENSION ARRAY
 		coor_2d_red <- array(NA, dim=c(rx*ry, 2, dim(coor.2d)[3], dim(coor.2d)[4]))
 
-		if(print.progress) cat('\nReduce grid point density (', dim(coor.2d)[3]*dim(coor.2d)[4], ' total)\n', sep='')
+		if(print.progress) cat('\n', print.tab, 'Reduce grid point density (', dim(coor.2d)[3]*dim(coor.2d)[4], ' total)\n', sep='')
 
 		for(i in 1:dim(coor.2d)[3]){
 			for(j in 1:dim(coor.2d)[4]){
-				if(print.progress) cat('\t', (i-1)*dim(coor.2d)[4] + j, ') Aspect ', i, ', View ', j, '; ', sep='')
+				if(print.progress) cat(print.tab, '\t', (i-1)*dim(coor.2d)[4] + j, ') Aspect ', i, ', View ', j, '; ', sep='')
 				coor_2d_red[, , i, j] <- resampleGridImagePoints(pts=coor.2d[, , i, j], nx=nx, rx=rx, ry=ry, fit.min.break=fit.min.break, print.progress=print.progress)$pts
 			}
 		}
 	}else{
 		
 		# MAINTAIN FULL GRID DIMENSIONS
-		rx <- nx;ry <- ny;sx <- grid.size;sy <- NULL
+		rx <- nx;ry <- ny;
+		
+		#
+		if(is.null(sx)) sx <- grid.size[1]
+		if(is.null(sy) && length(grid.size) > 1) sy <- grid.size[2]
 		
 		# COPY POINTS TO REDUCED 2D COOR ARRAY
 		coor_2d_red <- coor.2d
-	}	
+	}
 
 	# SCALE INITIAL TRANSLATE PARAMETER TO REAL-WORLD UNITS (APPROX THIRD THE MAX DIMENSION OF GRID)
-	t_init <- (max(nx, ny)*grid.size)/3
+	t_init <- (max(nx, ny)*grid.size[1])/3
 	
 	# SET INITIAL TIME POINT
 	ptm <- proc.time()
 
 	# RUN NLM FUNCTION TO FIND TRANSFORMATION PARAMETERS THAT MINIMIZE INTERNAL RMS CALIBRATION ERROR
-	if(print.progress) cat('\nFull Transform RMSE Minimization\nNumber of parameters:', (dim(coor.2d)[3]-1)*6, '\nNumber of points:', rx*ry*dim(coor.2d)[3], '\n')
+	if(print.progress) cat('\n', print.tab, 'Full Transform RMSE Minimization\n', print.tab,'Number of parameters: ', (dim(coor.2d)[3]-1)*6, '\n', print.tab, 'Number of points: ', rx*ry*dim(coor.2d)[3], '\n', sep='')
 
-	control <- list(eval.max = nlm.eval.max, iter.max = nlm.iter.max)
-
-	# SET STARTING NUMBER OF GRIDS FOR OPTIMIZATION
-	#grid.incl.min <- if(dim(coor.2d)[3] == 2){2}else{3}
-	#grid.incl.min <- 2
-	
 	# SET FIXED START PARAMETERS, FIX FIRST GRID AT ORIGIN
 	p_fix <- c()
-	
-	#trace <- 0
-	#if(!is.null(sink.trace)) trace <- 1
 
 	for(num_grid in grid.incl.min:dim(coor.2d)[3]){
 
-		if(print.progress) cat('\nRunning minimization with ', num_grid, ' grids...', sep='')
+		if(print.progress) cat('\n', print.tab, 'Running minimization with ', num_grid, ' grids...', sep='')
 
 		# ESTIMATE STARTING PARAMETERS BASED ON 2D VIEW
-		estimate_start_params <- dltCCEstimateStartParams(coor.2d, num_grid, nx, ny, grid.size, p_fix)
+		estimate_start_params <- dltCCEstimateStartParams(coor.2d, num_grid, nx, ny, grid.size[1], p_fix)
+		
 		start_param_array <- estimate_start_params$start_param_array
 		max_disp_rwu <- estimate_start_params$max_disp_rwu
 
 		# GET 2D COORDINATE SUBSET MATRIX FOR TRANSFORMATION OPTIMIZATION
 		coor_2d_t <- apply(coor_2d_red[, , 1:num_grid, ], c(2, 4), matrix, byrow=FALSE)
 
-		lower <- rep(c(rep(-pi, 3), rep(-7*max(nx, ny)*grid.size, 3)), num_grid)
+		lower <- rep(c(rep(-pi, 3), rep(-7*max(nx, ny)*grid.size[1], 3)), num_grid)
 
 		# SET NLM CALL VARIABLES
 		nlm_min <- rep(NA, nlm.calls.max)
@@ -148,10 +147,12 @@ dltCalibrateCameras <- function(coor.2d, nx, grid.size, c.run = FALSE, reduce.gr
 			}else{
 
 				start_full <- nlm_fit$par
+
 				nlm_fit <- tryCatch(
 					expr={
 						nlminb(start=start_full, objective=dltTransformationParameterRMSError, 
-							control=control, lower=lower, upper=-lower, coor.2d=coor_2d_t, nx=rx, ny=ry, 
+							control=list(eval.max = nlm.eval.max, iter.max = nlm.iter.max), 
+							lower=lower, upper=-lower, coor.2d=coor_2d_t, nx=rx, ny=ry, 
 							sx=sx, sy=sy, p.fixed=rep(0, 6))
 					},
 					error=function(cond){if(print.progress) cat('N');return(NULL)},
@@ -179,7 +180,7 @@ dltCalibrateCameras <- function(coor.2d, nx, grid.size, c.run = FALSE, reduce.gr
 				nlm_calls[[nlm_n]] <- nlm_fit
 				nlm_min[nlm_n] <- nlm_calls[[nlm_n]]$objective
 
-				# IF OPTIMIZATION MINIMUM IS LESS THAN ONE, STOP ITERATING
+				# IF OPTIMIZATION MINIMUM IS LESS THAN objective.min, STOP ITERATING
 				if(nlm_calls[[nlm_n]]$convergence == 0 && nlm_calls[[nlm_n]]$objective < objective.min) break
 				if(nlm_fit$message == 'iteration limit reached without convergence (10)' && nlm_calls[[nlm_n]]$objective < objective.min) break
 				if(nlm_fit$message == 'function evaluation limit reached without convergence (9)' && nlm_calls[[nlm_n]]$objective < objective.min) break
@@ -194,37 +195,43 @@ dltCalibrateCameras <- function(coor.2d, nx, grid.size, c.run = FALSE, reduce.gr
 		nlm_res_t <- nlm_calls[[which.min(nlm_min)]]
 
 		if(print.progress){
-			cat('\n\tNumber of nlminb() calls: ', nlm_n, ' (', nlm.calls.max, ' max)', 
-				'\n\tTermination message: ', nlm_res_t$message, 
-				'\n\tMinimum: ', nlm_res_t$objective, 
-				'\n\tIterations: ', nlm_res_t$iterations, ' (', nlm.iter.max, ' max)', 
-				'\n\tFunction evaluations: ', nlm_res_t$evaluations['function'], ' (', nlm.eval.max, ' max)', 
-				'\n\tRun-time: ', nlm_elapsed[1], ' sec', 
-				'\n\tStarting parameters: ', sep='')
+			cat('\n', print.tab, '\tNumber of nlminb() calls: ', nlm_n, ' (', nlm.calls.max, ' max)', 
+				'\n', print.tab, '\tTermination message: ', nlm_res_t$message, 
+				'\n', print.tab, '\tMinimum: ', nlm_res_t$objective, 
+				'\n', print.tab, '\tIterations: ', nlm_res_t$iterations, ' (', nlm.iter.max, ' max)', 
+				'\n', print.tab, '\tFunction evaluations: ', nlm_res_t$evaluations['function'], ' (', nlm.eval.max, ' max)', 
+				'\n', print.tab, '\tRun-time: ', nlm_elapsed[1], ' sec', 
+				'\n', print.tab, '\tStarting parameters: ', sep='')
 				cat(round(start, 5), sep=', ')
-				cat('\n\tFinal estimated parameters: ')
+				cat('\n', print.tab, '\tFinal estimated parameters: ', sep='')
 				cat(round(nlm_res_t$par, 5), sep=', ')
-				cat('\n\tSum of absolute differences between initial and final parameters: ', sum(abs(start - nlm_res_t$par)))
+				cat('\n', print.tab, '\tSum of absolute differences between initial and final parameters: ', sum(abs(start - nlm_res_t$par)), sep='')
 			cat('\n')
 		}
 
 		# SET FIXED PARAMETERS FOR NEXT ITERATION
 		p_fix <- nlm_res_t$par
+		
+		if(!is.null(objective.min.break)) if(nlm_res_t$objective > objective.min.break) break
 	}
 
 	# SAVE PROCESSING TIME
 	run_time <- proc.time() - ptm
 
-	if(print.progress) cat('\nTotal processing time: ', run_time[1], ' sec', sep='')
+	if(print.progress) cat('\n', print.tab, 'Total estimation processing time: ', run_time[1], ' sec', sep='')
 
 	# SAVE OPTIMIZED PARAMETERS
 	p_init <- matrix(c(rep(0, 6), nlm_res_t$par), nrow=6)
 
 	# GET 3D COORDINATES BASED ON OPTIMIZED PARAMETERS
-	coor_3d_coeff <- transformPlanarCalibrationCoordinates(tpar=c(p_init), nx=nx, ny=ny, sx=grid.size)
+	if(length(grid.size) == 1){
+		coor_3d_coeff <- transformPlanarCalibrationCoordinates(tpar=c(p_init), nx=nx, ny=ny, sx=grid.size[1])
+	}else{
+		coor_3d_coeff <- transformPlanarCalibrationCoordinates(tpar=c(p_init), nx=nx, ny=ny, sx=grid.size[1], sy=grid.size[2])
+	}
 
 	# GET 2D INPUT COORDINATES
-	coor_2d_coeff <- apply(coor.2d, c(2, 4), matrix, byrow=FALSE)
+	coor_2d_coeff <- apply(coor.2d[, , 1:(length(p_init)/6), ], c(2, 4), matrix, byrow=FALSE)
 
 	# GET DLT CALIBRATION COEFFICIENTS FROM OPTIMIZED 3D COORDINATE SUBSET (ALL GRID POINTS - SO RMSE CAN DIFFER FROM NLM MINIMUM)
 	dlt_coefficients_t <- dltCoefficients(coor.3d=coor_3d_coeff, coor.2d=coor_2d_coeff)
@@ -238,10 +245,10 @@ dltCalibrateCameras <- function(coor.2d, nx, grid.size, c.run = FALSE, reduce.gr
 		ptm <- proc.time();#c_iter <<- 0
 
 		# RUN NLM FUNCTION TO FIND COEFFICIENTS THAT MINIMIZE INTERNAL RMS CALIBRATION ERROR
-		if(print.progress) cat('\nCoefficient RMSE Minimization\nNumber of parameters:', length(c(dlt_coefficients_t$cal.coeff)), '\nNumber of points:', rx*ry*dim(coor.2d)[3], '\nRunning minimization...\n')
+		if(print.progress) cat('\n', print.tab, 'Coefficient RMSE Minimization\n', print.tab, 'Number of parameters: ', length(c(dlt_coefficients_t$cal.coeff)), '\n', print.tab, 'Number of points: ', rx*ry*dim(coor.2d)[3], '\n', print.tab, 'Running minimization...\n', sep='')
 		nlm_res_c <- nlm(dltCoefficientRMSError, p=c(dlt_coefficients_t$cal.coeff), coor.2d=coor_2d_c)
 
-		if(print.progress) cat('\nTermination code:', nlm_res_c$code, '\nIterations:', nlm_res_c$iterations, '\n')
+		if(print.progress) cat('\n', print.tab, 'Termination code: ', nlm_res_c$code, '\n', print.tab, 'Iterations: ', nlm_res_c$iterations, '\n', sep='')
 
 		# SAVE PROCESSING TIME
 		run_time_c <- proc.time() - ptm
@@ -331,124 +338,3 @@ summary.dltCalibrateCameras <- function(object, ...){
 
 print.summary.dltCalibrateCameras <- function(x, ...) cat(x, sep='')
 
-dltCCEstimateStartParams <- function(coor.2d, num.grid, nx, ny, grid.size, p.fix, use.param.min=2){
-
-	nrow_start_param <- 576
-	
-	if(!is.null(p.fix) && length(p.fix) >= use.param.min*6){
-
-		# GET 3D COORDINATES BASED ON OPTIMIZED PARAMETERS
-		coor_3d_coeff <- transformPlanarCalibrationCoordinates(tpar=c(matrix(c(rep(0, 6), p.fix), nrow=6)), 
-			nx=nx, ny=ny, sx=grid.size)
-
-		# GET 2D INPUT COORDINATES
-		coor_2d_coeff <- apply(coor.2d[, , 1:(num.grid-1), ], c(2, 4), matrix, byrow=FALSE)
-
-		# GET DLT CALIBRATION COEFFICIENTS FROM OPTIMIZED 3D COORDINATE SUBSET (ALL GRID POINTS - SO RMSE CAN DIFFER FROM NLM MINIMUM)
-		dlt_coefficients_t <- dltCoefficients(coor.3d=coor_3d_coeff, coor.2d=coor_2d_coeff)
-		
-		# USE DLT COEFFICIENTS TO RECONSTRUCT ALL 2D COORDINATES
-		dlt_reconstruct <- dltReconstruct(cal.coeff=dlt_coefficients_t$cal.coeff, coor.2d=apply(coor.2d, c(2, 4), matrix, byrow=FALSE))
-
-		# COPY 3D COORDINATES TO ARRAY
-		grids_3d <- array(NA, dim=c(nx*ny, 3, num.grid))
-		for(i in 1:dim(grids_3d)[3]) grids_3d[, , i] <- dlt_reconstruct$coor.3d[((i-1)*nx*ny+1):(i*nx*ny), ]
-		
-		# FIND INVERSE TRANSFORMATIONS TO GET 
-		t_param <- inverseGridTransform(grids_3d)
-
-		# STARTING PARAMETER ARRAY
-		start_param_array <- array(NA, dim=c(nrow_start_param, num.grid-1, 6))
-		for(i in 1:dim(start_param_array)[2]) start_param_array[, i, ] <- matrix(t_param[i+1, ], nrow=nrow_start_param, ncol=6, byrow=TRUE)
-
-		# APPLY RANDOM SCALING
-		scaling <- array(sample(seq(0.5, 1.5, length=dim(start_param_array)[1]*dim(start_param_array)[2]*3)), dim=c(dim(start_param_array)[1], dim(start_param_array)[2], 3))
-		start_param_array[, , 4:6] <- array(start_param_array[, , 4:6], dim=dim(scaling))*scaling
-
-		# APPLY RANDOM SCALING
-		scaling <- array(sample(seq(0, 2, length=dim(start_param_array)[1]*dim(start_param_array)[2]*3)), dim=c(dim(start_param_array)[1], dim(start_param_array)[2], 3))
-		start_param_array[, , 1:3] <- array(start_param_array[, , 1:3], dim=dim(scaling))*scaling
-
-		max_disp_rwu <- max(t_param[, 4:6])
-
-	}else{
-
-		coor.2d <- coor.2d[, , 1:num.grid, ]
-
-		# GET APPROXIMATE SCALING FROM PIXELS TO REAL-WORLD UNITS
-		px2rwu <- 0
-		for(i in 1:dim(coor.2d)[4]){
-			for(j in 1:dim(coor.2d)[3]) px2rwu <- max(px2rwu, (grid.size*(nx-1)) / sqrt(sum((coor.2d[1, , j, i] - coor.2d[nx, , j, i])^2)))
-		}
-
-		# DISTANCE OF CENTROIDS OF ALL GRID ASPECTS FROM FIRST ASPECT CENTROID
-		centroid_dist <- matrix(NA, dim(coor.2d)[3]-1, dim(coor.2d)[4])
-		for(i in 1:dim(coor.2d)[4]){
-
-			# CENTROID OF FIRST ASPECT
-			centroid_first <- colMeans(coor.2d[, , 1, i])
-		
-			# CENTROID-CENTROID DISTANCE
-			for(j in 2:dim(coor.2d)[3]) centroid_dist[j-1, i] <- sqrt(sum((colMeans(coor.2d[, , j, i]) -  centroid_first)^2))
-		}
-
-		# FIND MAXIMUM CENTROID DISPLACEMENT IN REAL-WORLD UNITS
-		max_disp_rwu <- max(centroid_dist)*px2rwu
-
-		# FIND MAX SIDE DIMENSIONS IN STANDARD SQUARE LENGTH (RELATIVE MEASURE OF DISTANCE FROM CAMERA)
-		square_side_max <- matrix(NA, dim(coor.2d)[3], dim(coor.2d)[4])
-		for(i in 1:dim(coor.2d)[4]){
-			for(j in 1:dim(coor.2d)[3]){
-			
-				# SIDE LENGTHS
-				side_lengths <- c(
-					sqrt(sum((coor.2d[1, , j, i] - coor.2d[nx, , j, i])^2)),
-					sqrt(sum((coor.2d[nx*ny-nx+1, , j, i] - coor.2d[nx*ny, , j, i])^2)),
-					sqrt(sum((coor.2d[nx, , j, i] - coor.2d[nx*ny, , j, i])^2)),
-					sqrt(sum((coor.2d[1, , j, i] - coor.2d[nx*ny-nx+1, , j, i])^2)))
-				
-				# FIND MAX AND SCALE
-				if(which.max(side_lengths) %in% c(1, 2)){
-					square_side_max[j, i] <- max(side_lengths)
-				}else{
-					square_side_max[j, i] <- max(side_lengths)*(nx / ny)
-				}
-			}
-		}
-
-		# FIND DIFFERENCE FROM FIRST ASPECT
-		square_side_dist <- square_side_max[2:nrow(square_side_max), ] - matrix(square_side_max[1, ], nrow(square_side_max)-1, ncol(square_side_max), byrow=TRUE)
-
-		# SCALE TO MAX OF CENTROID DISTANCES
-		square_side_dist <- abs(square_side_dist) * (max(centroid_dist) / max(abs(square_side_dist)))
-
-		# CONVERT TO REAL-WORLD UNITS AND COMBINE INTO ONE MATRIX
-		dist_param <- cbind(centroid_dist * px2rwu, square_side_dist * px2rwu)
-
-		# STARTING PARAMETER ARRAY
-		start_param_array <- array(NA, dim=c(nrow_start_param, dim(coor.2d)[3]-1, 6))
-
-		# ADD IN TRANSLATION STARTING PARAMETERS
-		for(i in 1:dim(start_param_array)[2]){
-			start_param_array[, i, 4:6] <- c(dist_param[i, 1:4], 0, dist_param[i, 4:1], dist_param[i, 3:2], dist_param[i, 1], 0, dist_param[i, 4], dist_param[i, 1:2], 0, dist_param[i, 4])
-			start_param_array[, i, 4:6] <- start_param_array[, i, 4:6]*c(-1,1,1,-1)
-		}
-
-		# ADD IN ROTATION STARTING PARAMETERS
-		start_param_array[, , 1:3] <- c(0.0216, 0.0113, 0.0124, 0.02, 0.0348, 0.0323, 0.0295, 0.02143, 0.034)
-		start_param_array[, , 1:3] <- start_param_array[, , 1:3]*c(-1,1,1,-1)
-
-		# APPLY RANDOM SCALING
-		scaling <- array(sample(seq(0.7, 1.4, length=dim(start_param_array)[1]*dim(start_param_array)[2]*3)), dim=c(dim(start_param_array)[1], dim(start_param_array)[2], 3))
-		start_param_array[, , 4:6] <- array(start_param_array[, , 4:6], dim=dim(scaling))*scaling
-
-		# APPLY RANDOM SCALING
-		scaling <- array(sample(seq(0.7, 2, length=dim(start_param_array)[1]*dim(start_param_array)[2]*3)), dim=c(dim(start_param_array)[1], dim(start_param_array)[2], 3))
-		start_param_array[, , 1:3] <- array(start_param_array[, , 1:3], dim=dim(scaling))*scaling
-	}
-
-	#cat('\n')
-	#print(start_param_array[, 1, 1:3])
-
-	list(start_param_array = start_param_array, max_disp_rwu = max_disp_rwu)
-}

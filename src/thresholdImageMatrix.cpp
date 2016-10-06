@@ -16,6 +16,7 @@ Rcpp::IntegerMatrix thresholdImageMatrix(Rcpp::NumericMatrix mat, Rcpp::NumericM
 	std::map<int, int> tab;
 	int nrow = mat.nrow();
 	int ncol = mat.ncol();
+	std::pointer_to_unary_function <double,double> roundObject (round) ;
 
 	// CREATE EMPTY INTEGER MATRIX
 	Rcpp::IntegerMatrix mat_int(nrow, ncol);
@@ -26,10 +27,10 @@ Rcpp::IntegerMatrix thresholdImageMatrix(Rcpp::NumericMatrix mat, Rcpp::NumericM
 
 	// MULTIPLY BY 255 AND ROUND TO CREATE BINS
 	std::transform(mat_num.begin(), mat_num.end(), mat_num.begin(), std::bind1st(std::multiplies<double>(), 255));
-	std::transform(mat_num.begin(), mat_num.end(), mat_num.begin(), round);
+	std::transform(mat_num.begin(), mat_num.end(), mat_num.begin(), roundObject);
 
 	std::transform(thresh_mat.begin(), thresh_mat.end(), thresh_mat.begin(), std::bind1st(std::multiplies<double>(), 255));
-	std::transform(thresh_mat.begin(), thresh_mat.end(), thresh_mat.begin(), round);
+	std::transform(thresh_mat.begin(), thresh_mat.end(), thresh_mat.begin(), roundObject);
 
     int idelta = type == 1 ? ceil(delta) : floor(delta);
 //	Rcpp::Rcout << "idelta: " << idelta << std::endl;

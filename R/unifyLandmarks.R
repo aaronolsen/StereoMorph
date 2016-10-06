@@ -1,4 +1,4 @@
-unifyLandmarks <- function(lm.array, min.common = dim(lm.array)[2]){
+unifyLandmarks <- function(lm.array, min.common = dim(lm.array)[2], return.on.error = FALSE){
 	# Modified from R function unifyVD() written by Annat Haber
 	# Rohlf 1990. Proceedings of the Michigan Morphometrics Workshop
 
@@ -83,6 +83,14 @@ unifyLandmarks <- function(lm.array, min.common = dim(lm.array)[2]){
 			unify_array[, , j] <- (all_m1 + all_m2)/2
 		}
 
+		# NOT ENOUGH POINTS TO UNIFY SETS
+		if(sum(!is.na(rmse_error)) == 0){
+			
+			if(return.on.error) return(NULL)
+
+			stop(paste0("The number of common points between the two aspects to unify is less than the specified minimum (", min.common, ")."))
+		}
+
 		# FIND MINIMUM UNIFICATION ERROR
 		min_error <- which.min(rmse_error)
 
@@ -108,48 +116,54 @@ unifyLandmarks <- function(lm.array, min.common = dim(lm.array)[2]){
 	# SAVE TO LANDMARK MATRIX WITH PROPER DIMENSION NAMES
 	lm.matrix <- matrix(lm_array[, , num_sets+1], nrow=dim(lm_array)[1], ncol=dim(lm_array)[2], dimnames=list(dimnames(lm_array)[[1]], c('x', 'y', 'z')[1:dim(lm_array)[2]]))
 
-	l <- list(lm.matrix = lm.matrix, unify.seq = unify.seq, unify.error = unify.error, unify.rmse = sqrt(colSums(unify.error, na.rm = TRUE) / colSums(!is.na(unify.error))))
+	l <- list(
+		lm.matrix=lm.matrix,
+		unify.seq = unify.seq,
+		unify.error = unify.error,
+		unify.rmse = sqrt(colSums(unify.error, na.rm = TRUE) / colSums(!is.na(unify.error))))
 	class(l) <- 'unifyLandmarks'
 	l
 }
 
-summary.unifyLandmarks <- function(object, ...){
-	r <- ''
+summary.unifyLandmarks <- function(object, print.tab = '', verbose = TRUE, ...){
 
-	r <- c(r, '\n')
-	r <- c(r, 'unifyLandmarks Summary\n')
-	r <- c(r, 'Unification sequence: ')
-	r <- c(r, paste0(object$unify.seq, collapse=', '))
-	r <- c(r, '\n')
+	r <- '\n'
 
-	r <- c(r, 'Unification RMSE:')
+	r <- c(r, print.tab, 'unifyLandmarks Summary\n')
+	if(verbose) r <- c(r, print.tab, '\tUnification sequence: ', paste0(object$unify.seq, collapse=', '))
+	if(verbose) r <- c(r, '\n')
+
+	r <- c(r, print.tab, '\tUnification RMS Error:')
 	if(is.na(object$unify.rmse[1])){
-		r <- c(r, ' NA')
+		r <- c(r, print.tab, ' NA')
 	}else{
-		r <- c(r, '\n\t')
-		r <- c(r, paste(format(object$unify.rmse), collapse='\n\t'))
+		#r <- c(r, '\n\t\t')
+		#r <- c(r, print.tab, paste(format(object$unify.rmse), collapse=paste0('\n\t\t', print.tab)))
+		r <- c(r, paste0(' ', paste(format(object$unify.rmse), collapse=', ')))
 	}
-	r <- c(r, '\n\n')
+	r <- c(r, '\n')
 
-	r <- c(r, 'Unification landmark errors by sequence:')
-	if(!is.matrix(object$unify.error)){
-		r <- c(r, ' NA\n')
-	}else{
-		r <- c(r, '\n')
-		for(i in 1:ncol(object$unify.error)){
-			r <- c(r, '\t[[', i, ']]\n')
-			
-			m <- as.matrix(object$unify.error[!is.na(object$unify.error[, i]), i])
-			maxnchar <- max(nchar(rownames(m))) + 3
-			
-			for(j in 1:nrow(m)){
-				r <- c(r, paste0('\t\t', rownames(m)[j], paste(rep(' ', length=maxnchar - nchar(rownames(m)[j])), collapse=''), format(m[j, ]), sep='\n'))
-			}
+	if(verbose){
+		r <- c(r, print.tab, '\tUnification landmark errors by sequence:')
+		if(!is.matrix(object$unify.error)){
+			r <- c(r, print.tab, '\tNA\n')
+		}else{
 			r <- c(r, '\n')
+			for(i in 1:ncol(object$unify.error)){
+				r <- c(r, print.tab, '\t\t[[', i, ']]\n')
+			
+				m <- as.matrix(object$unify.error[!is.na(object$unify.error[, i]), i])
+				maxnchar <- max(nchar(rownames(m))) + 3
+			
+				for(j in 1:nrow(m)){
+					r <- c(r, print.tab, paste0('\t\t\t', rownames(m)[j], paste(rep(' ', length=maxnchar - nchar(rownames(m)[j])), collapse=''), format(m[j, ]), sep='\n'))
+				}
+				r <- c(r, '\n')
+			}
 		}
 	}
 
-	r <- c(r, '\n')
+	#r <- c(r, '\n')
 	class(r) <- "summary.unifyLandmarks"
 	r
 }

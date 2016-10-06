@@ -1,4 +1,9 @@
-drawCheckerboard <- function(nx, ny, square.size, filename, margin.x = c(round(square.size/2), round(square.size/2)), margin.y = c(round(square.size/2), round(square.size/2)), ...){
+drawCheckerboard <- function(nx, ny, square.size, file = NULL, 
+	margin.x = c(round(square.size/2), round(square.size/2)), 
+	margin.y = c(round(square.size/2), round(square.size/2)), 
+	filename = NULL, ...){
+
+	if(is.null(file) && !is.null(filename)) file <- filename
 
 	# REQUIRES GRID PACKAGE
 
@@ -6,14 +11,17 @@ drawCheckerboard <- function(nx, ny, square.size, filename, margin.x = c(round(s
 	x <- c(0, 0, square.size, square.size)
 	y <- c(0, square.size, square.size, 0)
 	
-	# GET FILE EXTENSION FROM FILENAME
-	image_type <- tolower(substr(filename, nchar(filename)-attributes(regexpr(pattern='[A-Za-z]+$', text=filename))$match.length+1, nchar(filename)))
+	if(!is.null(file)){
+
+		# GET FILE EXTENSION FROM FILENAME
+		image_type <- tolower(substr(file, nchar(file)-attributes(regexpr(pattern='[A-Za-z]+$', text=file))$match.length+1, nchar(file)))
 	
-	# CHANGE JPG TO JPEG TO MATCH FUNCTION CALL
-	if(image_type == 'jpg') image_type <- 'jpeg'
+		# CHANGE JPG TO JPEG TO MATCH FUNCTION CALL
+		if(image_type == 'jpg') image_type <- 'jpeg'
+	}
 
 	# CALL CORRESPONDING IMAGE FUNCTION TO START IMAGE WRITING
-	do.call(image_type, list(filename=filename, width=sum(margin.x) + (nx+1)*square.size, height=sum(margin.y) + (ny+1)*square.size, ...))
+	if(!is.null(file)) do.call(image_type, list(filename=file, width=sum(margin.x) + (nx+1)*square.size, height=sum(margin.y) + (ny+1)*square.size, ...))
 
 	# WRITE CHECKERBOARD SQUARES TO IMAGE
 	grid.newpage()
@@ -29,5 +37,5 @@ drawCheckerboard <- function(nx, ny, square.size, filename, margin.x = c(round(s
 	}
 
 	# CLOSE IMAGE CONNECTION
-	dev.off();
+	if(!is.null(file)) dev.off();
 }

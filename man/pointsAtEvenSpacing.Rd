@@ -19,8 +19,6 @@ The function iterates through \code{x}, finding the point that is at a distance 
 In the simplest implementation, \code{pointsAtEvenSpacing()} can be used for linear interpolation (see first example below). Define the start and end points in \code{x} as a two-row matrix and then select the number of points to include on the line.
 
 If \code{x} represents densely sampled points on a curve (see the second example below) and if the curve can be approximated by straight lines between consecutive points, then \code{pointsAtEvenSpacing()} will provide comparable results to other methods, such as function fitting. This is especially useful for curves not easily fit by a mathematical function.
-
-For examples on how to use \code{pointsAtEvenSpacing()} see \href{http://stereomorph.blogspot.com/2014/04/reconstructing-2d-points-and-curves.html}{Reconstructing 2D points and curves into 3D}.
 }
 \value{a matrix of \code{n} points. The start and end points correspond to the first and last non-NA values in \code{x}.}
 \author{Aaron Olsen}

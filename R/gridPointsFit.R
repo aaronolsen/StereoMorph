@@ -6,5 +6,3 @@ gridPointsFit <- function(p, nx, ny=NULL){
 	
 	return(ny_add + rep(seq(0, length=nx, by=p[2]) + p[1], ny))
 }
-
-gridPointsFitError <- function(p, nx, points, ny=NULL) mean(sqrt((points - gridPointsFit(p, nx, ny))^2))

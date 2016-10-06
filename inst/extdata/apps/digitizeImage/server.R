@@ -4,10 +4,26 @@ control_points_file <- NULL
 curve_points_file <- NULL
 shapes_file <- NULL
 
-if(!is.null(init_params$landmarks_file)) landmarks_file <- paste0(init_params$prev_wd, '/', init_params$landmarks_file)
-if(!is.null(init_params$control_points_file)) control_points_file <- paste0(init_params$prev_wd, '/', init_params$control_points_file)
-if(!is.null(init_params$curve_points_file)) curve_points_file <- paste0(init_params$prev_wd, '/', init_params$curve_points_file)
-if(!is.null(init_params$shapes_file)) shapes_file <- paste0(init_params$prev_wd, '/', init_params$shapes_file)
+if(!is.null(init_params$landmarks_file) && !grepl(init_params$prev_wd, init_params$landmarks_file, fixed=TRUE)){
+	landmarks_file <- paste0(init_params$prev_wd, '/', init_params$landmarks_file)
+}else{
+	landmarks_file <- init_params$landmarks_file
+}
+if(!is.null(init_params$control_points_file) && !grepl(init_params$prev_wd, init_params$control_points_file, fixed=TRUE)){
+	control_points_file <- paste0(init_params$prev_wd, '/', init_params$control_points_file)
+}else{
+	control_points_file <- init_params$control_points_file
+}
+if(!is.null(init_params$curve_points_file) && !grepl(init_params$prev_wd, init_params$curve_points_file, fixed=TRUE)){
+	curve_points_file <- paste0(init_params$prev_wd, '/', init_params$curve_points_file)
+}else{
+	curve_points_file <- init_params$curve_points_file
+}
+if(!is.null(init_params$shapes_file) && !grepl(init_params$prev_wd, init_params$shapes_file, fixed=TRUE)){
+	shapes_file <- paste0(init_params$prev_wd, '/', init_params$shapes_file)
+}else{
+	shapes_file <- init_params$shapes_file
+}
 
 shinyServer(function(input, output) {
 
@@ -227,6 +243,7 @@ shinyServer(function(input, output) {
 
 					if(length(json_list$control_points) > 0){
 						for(i in 1:length(json_list$control_points)){
+
 							m <- matrix(as.numeric(json_list$control_points[[i]][2:length(json_list$control_points[[i]])]), nrow=(length(json_list$control_points[[i]])-1)/2, ncol=2, byrow=TRUE)
 
 							if(nrow(m) <= 2) next

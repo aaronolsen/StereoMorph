@@ -1,16 +1,29 @@
 findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify.file=NULL, 
-	perim.min = 50, perim.max = NULL, dilations.min = 0, dilations.max = 7, sub.pix.win = NULL,
-	poly.cont.min=-0.1, poly.cont.max=0.2, quad.approx.thresh = NULL, print.progress = TRUE, 
-	verbose = FALSE, debug = FALSE) {
+	perim.min = 'auto', perim.max = 'auto', dilations.min = 0, dilations.max = 7, sub.pix.win = NULL,
+	quad.fit.max=4, poly.cont.min=-0.3, poly.cont.max=0.3, quad.approx.thresh = 'auto', 
+	flip = FALSE, print.progress = TRUE, verbose = FALSE, debug = FALSE) {
+
+	proc_start <- proc.time()[3]
+
+	# CREATE LIST TO TIME CODE
+	proc_times <- list()
+	proc_times[['Pre']] <- proc.time()[3]
 
 	normalize_image <- FALSE
+	if(perim.min == 'auto'){perim_min_auto <- TRUE}else{perim_min_auto <- FALSE}
+	if(perim.max == 'auto'){perim_max_auto <- TRUE}else{perim_max_auto <- FALSE}
+	if(quad.approx.thresh == 'auto'){quad_approx_thresh_auto <- TRUE}else{quad_approx_thresh_auto <- FALSE}
 	prev_sqr_size <- 0
-	dilations <- 3
+	dilation_ct <- 0
 	poly_asp_min <- 0.05
 	sub.pix.max.iter <- 20
-	max.dist.int.corners <- 15
-	max.int.corner.dev <- 3
+	max.dist.int.corners <- 20
+	#max.int.corner.dev <- 3
 	criteria <- 0.01
+	num_quads_size_threshold <- 3
+
+	# CHECK MIN/MAX DILATIONS
+	if(dilations.max < dilations.min) stop("'dilations.max' must be greater than or equal to dilations.min.")
 
 	# MAKE SURE INPUT TYPES AND DIMENSIONS MATCH
 	if(!is.null(corner.file)){
@@ -119,23 +132,31 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 				next
 			}
 
+			proc_times[['Pre']][2] <- proc.time()[3]
+			proc_times[['readJPEG']] <- proc.time()[3]
 			# READ IN JPEG, THIRD DIMENSION ORDER: RGB
 			img_rgb <- readJPEG(source=image.file[image_row, image_col])
+			proc_times[['readJPEG']][2] <- proc.time()[3]
+			proc_times[['rgbToGray']] <- proc.time()[3]
 
 			# CONVERT COLOR IMAGE TO GRAYSCALE - USE THE SAME CONVERSION COEFFICIENTS AS OPENCV
 			img_gray <- rgbToGray(ch1=img_rgb[, , 1], ch2=img_rgb[, , 2], ch3=img_rgb[, , 3])
-			#writeJPEG(img_gray, paste0(img_file_noext[image_num], '_gray.JPG'), quality=1)
+			proc_times[['rgbToGray']][2] <- proc.time()[3]
+			proc_times[['meanBlurImage']] <- proc.time()[3]
+			if(debug && !is.null(verify.file)){
+				save_debug_img <- gsub('.jpg|.jpeg', '_gray.JPG', verify.file[image_row, image_col], ignore.case=TRUE)
+				writeJPEG(img_gray, save_debug_img, quality=1)
+			}
 
 			# GET IMAGE DIMENSIONS
 			nrow <- nrow(img_gray)
 			ncol <- ncol(img_gray)
 			
-			# SET QUAD APPROXIMATION THRESHOLD IF NULL
-			if(is.null(quad.approx.thresh)){
-				quad_approx_thresh <- c(15, round(max(nrow, ncol)/86))
-			}else{
-				quad_approx_thresh <- quad.approx.thresh
-			}
+			# IF INPUT PERIMETER MIN IS AUTO THEN DETERMINE BASED ON IMAGE SIZE
+			if(perim_min_auto) perim.min <- round((nrow+ncol)*0.021)
+			
+			# SET QUAD APPROXIMATION THRESHOLD IF AUTO
+			if(quad_approx_thresh_auto) quad.approx.thresh <- c(15, round(max(nrow, ncol)/86))
 
 			# GET EXPECTED NUMBER OF QUADS
 			if(nx %% 2 == 0 && ny %% 2 == 0) nquads <- (ny/2)*((nx/2) + (nx/2 + 1)) + (nx/2 + 1)
@@ -143,19 +164,25 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 			if(nx %% 2 == 0 && ny %% 2 == 1) nquads <- ((ny+1)/2)*(nx/2 + (nx/2 + 1))
 
 			# SET MAXIMUM QUAD PERIMETER
-			if(is.null(perim.max)) perim.max <- round((max(nrow, ncol) / (max(nx, ny)))*5)
+			if(perim_max_auto) perim.max <- round((max(nrow, ncol) / (max(nx, ny)))*5)
 
 			# IF SPECIFIED, NORMALIZE IMAGE HISTOGRAM
 			if(normalize_image) img_gray <- equalizeImageHist(img_gray)
 
 			# GET KERNEL SIZE FOR MEAN BLUR THRESHOLD MATRIX
 			#kernel <- round(0.0001*(min(nrow, ncol)^2.03))
-			kernel <- round(min(nrow, ncol)*0.2)
-			if(print.progress && verbose) cat("\tMean blur threshold kernel size: ", kernel, "pixels\n")
+			#kernel <- round(min(nrow, ncol)*0.2)
+			kernel <- round(min(nrow, ncol)*0.15)
+			if(print.progress && verbose) cat("\tMean blur threshold kernel size: ", kernel, " pixels\n")
 
 			# GET MEAN THRESHOLD MATRIX
 			mean_thresh <- meanBlurImage(mat=img_gray, kernel=kernel)
-			#writeJPEG(mean_thresh, paste0(img_file_noext[image_num], '_mean_thresh.JPG'), quality=1)
+			if(debug && !is.null(verify.file)){
+				save_debug_img <- gsub('.jpg|.jpeg', '_mean_thresh.JPG', verify.file[image_row, image_col], ignore.case=TRUE)
+				writeJPEG(mean_thresh, save_debug_img, quality=1)
+			}
+			proc_times[['meanBlurImage']][2] <- proc.time()[3]
+			proc_times[['thresholdImageMatrix']] <- proc.time()[3]
 
 			# THRESHOLD IMAGE BASED ON MEAN THRESHOLD MATRIX
 			img_binary <- thresholdImageMatrix(mat=img_gray, thresh_mat=mean_thresh, delta = 0, type = 1)
@@ -163,54 +190,84 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 				save_debug_img <- gsub('.jpg|.jpeg', '_binary.JPG', verify.file[image_row, image_col], ignore.case=TRUE)
 				writeJPEG(matrix(as.double(img_binary), nrow=nrow, ncol=ncol), save_debug_img, quality=1)
 			}
+			proc_times[['thresholdImageMatrix']][2] <- proc.time()[3]
+			proc_times[['Morphological closing']] <- proc.time()[3]
 
 			# MORPHOLOGICAL CLOSING TO REDUCE NOISE
 			if(print.progress && verbose) cat("\tMinimum number of quads expected: ", nquads, "\n", "\tReducing image noise...\n")
 			img_binary <- dilateImage(img_binary, kernel=3, 4)
 			img_binary <- erodeImage(img_binary, kernel=3, 4)
+			proc_times[['Morphological closing']][2] <- proc.time()[3]
 
-			dilations <- dilations.min
-			while(dilations <= dilations.max){
+			if(debug && !is.null(verify.file)){
+				save_debug_img <- gsub('.jpg|.jpeg', '_closing.JPG', verify.file[image_row, image_col], ignore.case=TRUE)
+				writeJPEG(matrix(as.double(img_binary), nrow=nrow, ncol=ncol), save_debug_img, quality=1)
+			}
+			
+			# SET ORDER IN WHICH TO APPLY DILATIONS
+			apply_dilations <- c(2:7, 1, 0)
+			
+			# CHECK MIN AND MAX
+			apply_dilations <- apply_dilations[apply_dilations >= dilations.min]
+			apply_dilations <- apply_dilations[apply_dilations <= dilations.max]
+			
+			# SET INITIAL DILATE IMAGE AS BINARY
+			img_dilate <- img_binary
+			
+			for(dilations in apply_dilations){
 		
-				# MAKE COPIES OF MATRICES
-				img_gray_copy <- img_gray
+				proc_times[[paste0(dilations, ' dilateImage')]] <- proc.time()[3]
 
 				# DILATE IMAGE TO ISOLATE BLACK SQUARES
 				if(print.progress && verbose) cat(paste0("\tTrying with ", dilations, " dilations...\n"))
-				img_dilate <- dilateImage(img_binary, kernel=3, dilations)
+				if(dilations > dilation_ct){
+					img_dilate <- dilateImage(img_dilate, kernel=3, dilations-dilation_ct)
+					dilation_ct <- dilations
+				}else if(dilations < dilation_ct){
+					img_dilate <- dilateImage(img_binary, kernel=3, dilations)
+					dilation_ct <- dilations
+				}
+				proc_times[[paste0(dilations, ' dilateImage')]][2] <- proc.time()[3]
+				proc_times[[paste0(dilations, ' findBoundaryPoints')]] <- proc.time()[3]
 
 				if(debug && !is.null(verify.file)){
-					save_debug_img <- gsub('.jpg|.jpeg', '_dilations.JPG', verify.file[image_row, image_col], ignore.case=TRUE)
+					save_debug_img <- gsub('.jpg|.jpeg', paste0('_', dilations, '_dilations.JPG'), verify.file[image_row, image_col], ignore.case=TRUE)
 					writeJPEG(matrix(as.double(img_dilate), nrow=nrow, ncol=ncol), save_debug_img, quality=1)
 				}
 
 				# DRAW WHITE RECTANGLE AROUND THE EDGE OF THE PHOTO
-				img_dilate <- drawRectangle(img_dilate, corner1=c(0,0), corner2=c(ncol-1, nrow-1), value=1, thickness=3)
+				img_rect <- drawRectangle(img_dilate, corner1=c(0,0), corner2=c(ncol-1, nrow-1), value=1, thickness=3)
+				
+				if(debug && !is.null(verify.file)){
+					save_debug_img <- gsub('.jpg|.jpeg', paste0('_', dilations, '_img_rect.JPG'), verify.file[image_row, image_col], ignore.case=TRUE)
+					writeJPEG(matrix(as.double(img_rect), nrow=nrow, ncol=ncol), save_debug_img, quality=1)
+				}
 
 				# FIND BOUNDARIES
-				img_boundary <- findBoundaryPoints(img_dilate)
+				img_boundary <- findBoundaryPoints(img_rect)
+				proc_times[[paste0(dilations, ' findBoundaryPoints')]][2] <- proc.time()[3]
+				proc_times[[paste0(dilations, ' generateQuads')]] <- proc.time()[3]
 				
 				# TAKE INTO ACCOUNT REDUCED PERIMETER DUE TO DILATIONS
-				perim_min_red <- max(35, perim.min - perim.min*0.1*dilations)
+				perim_min_red <- round(max(35, perim.min - perim.min*0.1*dilations))
 
 				if(debug && !is.null(verify.file)){
-					save_debug_img <- gsub('.jpg|.jpeg', '_boundaries.JPG', verify.file[image_row, image_col], ignore.case=TRUE)
+					save_debug_img <- gsub('.jpg|.jpeg', paste0('_', dilations, '_boundaries.JPG'), verify.file[image_row, image_col], ignore.case=TRUE)
 					writeJPEG(matrix(as.double(img_boundary), nrow=nrow, ncol=ncol), save_debug_img, quality=1)
 				}
 
 				# FIND QUADS
-				for(k in 1:length(quad_approx_thresh)){
+				for(k in 1:length(quad.approx.thresh)){
 
-					quads <- generateQuads(img_dilate, img_boundary, perim_min_red, perim.max, poly.cont.min, poly.cont.max, poly_asp_min, quad_approx_thresh[k])
+					quads <- generateQuads(img_rect, img_boundary, perim_min_red, perim.max, 
+						quad.fit.max, poly.cont.min, poly.cont.max, poly_asp_min, quad.approx.thresh[k])
 
 					if(nrow(quads)/4 >= nquads) break
 				}
 				if(print.progress && verbose) cat(paste0("\tNumber of quads found (perimeter range: ", perim_min_red, "-", perim.max, "): ", nrow(quads)/4, "\n"))
+				proc_times[[paste0(dilations, ' generateQuads')]][2] <- proc.time()[3]
 
-				if(!nrow(quads)){
-					dilations <- dilations + 1
-					next
-				}
+				if(!nrow(quads)) next
 
 				if(debug && !is.null(verify.file)){
 
@@ -231,100 +288,105 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 						img_boundary[line] <- 0.7
 					}
 
-					save_debug_img <- gsub('.jpg|.jpeg', '_corners.JPG', verify.file[image_row, image_col], ignore.case=TRUE)
+					save_debug_img <- gsub('.jpg|.jpeg', paste0('_', dilations, '_quads.JPG'), verify.file[image_row, image_col], ignore.case=TRUE)
 					writeJPEG(img_boundary, save_debug_img, quality=1)
 				}
 
 				# CHECK THAT CORRECT NUMBER OF QUADS WERE FOUND
-				if(nrow(quads)/4 < nquads){
-					dilations <- dilations + 1
-					next
+				if(nrow(quads)/4 < nquads) next
+
+				# CONVERT QUADS TO ARRAY
+				quads_array <- array(NA, dim=c(4,2,nrow(quads)/4))
+				j <- 1;for(i in seq(1, nrow(quads), by=4)){quads_array[, , j] <- quads[i:(i+3), ]; j <- j + 1}
+
+				# FIND QUAD SIZES
+				quad_sizes <- rep(NA, dim(quads_array)[3])
+				for(i in 1:dim(quads_array)[3]) quad_sizes[i] <- sqrt(sum((quads_array[, , i] - matrix(colMeans(quads_array[, , i]), nrow=4, ncol=2, byrow=TRUE))^2))
+				#hist(quad_sizes)
+
+				# NOISY QUADS ARE MORE LIKELY TO BE SMALL, SET THRESHOLD BASED ON MAX CHECKERBOARD SIZE
+				# SET THRESHOLD
+				quad_num_th <- round(nquads*num_quads_size_threshold)
+
+				# MAKE SURE THRESHOLD DOESNT EXCEED NUMBER OF QUADS
+				if(quad_num_th < length(quad_sizes)){
+					quad_idx_over_th <- order(quad_sizes)[length(quad_sizes):(length(quad_sizes)-quad_num_th+1)]
+				}else{
+					quad_idx_over_th <- 1:length(quad_sizes)
 				}
+				
+				# TRIM QUADS TO THOSE OVER THRESHOLD
+				quads_trim <- matrix(NA, nrow=length(quad_idx_over_th)*4, ncol=2)
+				j <- 1;for(i in seq(1, nrow(quads_trim), by=4)){quads_trim[i:(i+3), ] <- quads_array[, , quad_idx_over_th[j]]; j <- j + 1}
+				quads <- quads_trim
+				
+				if(print.progress && verbose) cat(paste0("\tNumber of quads remaining after size filter: ", nrow(quads)/4, "\n"))
+
+				proc_times[[paste0(dilations, ' intCornersFromQuads')]] <- proc.time()[3]
 
 				# GET INTERNAL CORNERS
 				int_corners <- intCornersFromQuads(quads, max_dist=max.dist.int.corners+5*dilations)
+				proc_times[[paste0(dilations, ' intCornersFromQuads')]][2] <- proc.time()[3]
 
-				if(length(int_corners) == 0 || sum(is.na(int_corners)) == length(int_corners)){
-					dilations <- dilations + 1
-					next
-				}
+				if(length(int_corners) == 0 || sum(is.na(int_corners)) == length(int_corners)) next
 
 				if(print.progress & verbose){
 					cat(paste0("\tNumber of internal corners expected: ", nx*ny, "\n"))
-					cat(paste0("\tNumber of internal corners found in initial search: ", nrow(int_corners), "\n"))
+					cat(paste0("\tNumber of internal corners found in initial search: ", nrow(int_corners), " (max_dist: ", max.dist.int.corners+5*dilations, ")\n"))
+				}
+
+				if(debug && !is.null(verify.file)){
+
+					# DRAW QUADS WITH POINTS AND LINES
+					img_boundary <- matrix(as.double(img_boundary), nrow=nrow, ncol=ncol)
+					size <- 2
+					for(i in 1:nrow(int_corners)){
+						img_boundary[(int_corners[i, 1]+1)+rep(0,3), (int_corners[i, 2]+1)+-1:1] <- 0.7
+						img_boundary[(int_corners[i, 1]+1)+-1:1, (int_corners[i, 2]+1)+rep(0,3)] <- 0.7
+					}
+
+					save_debug_img <- gsub('.jpg|.jpeg', paste0('_', dilations, '_corners.JPG'), verify.file[image_row, image_col], ignore.case=TRUE)
+					writeJPEG(img_boundary, save_debug_img, quality=1)
 				}
 
 				# FIND DEVIATION FROM MEAN
-				int_corners_dev <- abs((int_corners - matrix(colMeans(int_corners), nrow=nrow(int_corners), ncol=2, byrow=TRUE)) 
-					/ matrix(apply(int_corners, 2, "sd"), nrow=nrow(int_corners), ncol=2, byrow=TRUE))
+				#int_corners_dev <- abs((int_corners - matrix(colMeans(int_corners), nrow=nrow(int_corners), ncol=2, byrow=TRUE)) 
+				#	/ matrix(apply(int_corners, 2, "sd"), nrow=nrow(int_corners), ncol=2, byrow=TRUE))
 
 				# REMOVE ANY INTERNAL CORNERS THAT ARE MORE THAN TWO STANDARD DEVIATIONS FROM THE MEAN IN EITHER DIMENSION
-				int_corners <- int_corners[rowSums(int_corners_dev > max.int.corner.dev) == 0, ]
+				#int_corners <- int_corners[rowSums(int_corners_dev > max.int.corner.dev) == 0, ]
 
-				if(length(int_corners) == 0 || sum(is.na(int_corners)) == length(int_corners)){
-					dilations <- dilations + 1
-					next
-				}
-				
-				# IF NUMBER OF CORNERS EXCEEDS EXPECTATION, REMOVE MOST OUTLYING EXTRA CORNERS				
+				#if(print.progress & verbose) cat(paste0("\tNumber of internal corners remaining after standard deviation filtering: ", nrow(int_corners), "\n"))
+
+				if(length(int_corners) == 0 || sum(is.na(int_corners)) == length(int_corners)) next
+
+				# IF NUMBER OF CORNERS EXCEEDS EXPECTATION, REMOVE MOST OUTLYING EXTRA CORNERS
 				if(nrow(int_corners) > nx*ny){
-
-					#int_corners <- int_corners[2:nrow(int_corners), ]
-
-					# USE PRINCIPAL COMPONENTS TO FIT TWO ORTHOGONAL LINES TO POINTS
-					xyCov <- cov(int_corners)
-					eigenVectors <- eigen(xyCov)$vectors
-
-					# GET POINTS TO DEFINE LINES
-					t <- seq(min(int_corners[, 1])-mean(int_corners[, 1]), max(int_corners[, 1])-mean(int_corners[, 1]), len=2)
-					pc1_x <- t + mean(int_corners[, 1])
-					pc1_y <- (eigenVectors[2,1]/eigenVectors[1,1])*t + mean(int_corners[, 2])
-					pc2_x <- t + mean(int_corners[, 1])
-					pc2_y <- (eigenVectors[2,2]/eigenVectors[1,2])*t + mean(int_corners[, 2])
-
-					# PLOT PC REGRESSION LINES
-					#plot(int_corners, xlim=c(-1000, 1000), ylim=c(-1000, 1000))
-					#lines(pc1_x, pc1_y, col='red')
-					#lines(pc2_x, pc2_y, col='blue')
-
-					# FIND THE DISTANCE FROM EACH INTERNAL CORNER TO LINES
-					dist_line <- distancePointToLine(int_corners, l1=c(pc1_x[1], pc1_y[1]), l2=c(pc1_x[2], pc1_y[2])) + 
-						distancePointToLine(int_corners, l1=c(pc2_x[1], pc2_y[1]), l2=c(pc2_x[2], pc2_y[2]))
-					
-					# FIND THE DISTANCE FROM THE MEAN
-					#dist_mean <- rowSums(sqrt((int_corners - matrix(colMeans(int_corners), nrow=nrow(int_corners), ncol=2, byrow=TRUE))^2))
-
-					# RANK DISTANCE FROM MEAN
-					dist_line_rank <- rank(dist_line)
-
-					# GET RANK THRESHOLD JUST BELOW MAXIMUM DISTANCE SET
-					rank_thresh <- sort(dist_line_rank)[nx*ny]
-					
-					# ONLY RETAIN ROWS AT OR BELOW THRESHOLD
-					int_corners <- int_corners[dist_line_rank <= rank_thresh, ]
+					proc_times[[paste0(dilations, ' remove outlying corners')]] <- proc.time()[3]
+					int_corners <- removeOutlierCorners(int_corners, nx, ny)
+					proc_times[[paste0(dilations, ' remove outlying corners')]][2] <- proc.time()[3]
 				}
 
 				if(print.progress & verbose) cat(paste0("\tNumber of internal corners remaining after filtering: ", nrow(int_corners), "\n"))
 
 				# IF NUMBER OF CORNERS IS LESS THAN EXPECTED
-				if(nrow(int_corners) < nx*ny){
-					dilations <- dilations + 1
-					next
-				}
+				if(nrow(int_corners) < nx*ny) next
 
 				# ORDER INTERNAL CORNERS
 				ordered_corners <- orderCorners(int_corners, nx, ny)
 
-				if(print.progress && verbose) cat(paste0("\tNumber of internal corners expected: ", nx*ny, "\n", "\tNumber of internal corners found: ", sum(rowSums(ordered_corners) > 0), "\n"))
+				# CHECK CORNER ORDER
+				ordered_corners <- checkCornerOrder(ordered_corners, nx, ny, print.progress, verbose)
 
 				# MAKE SURE THAT ALL CORNERS WERE FOUND - (0,0) CORNERS CONSIDERED IMPOSSIBLE
-				if(sum(rowSums(ordered_corners) == 0) > 0 || nrow(ordered_corners) != nx*ny){
-					dilations <- dilations + 1
-					if(print.progress && verbose) cat(paste0("\torderCorners() failed.\n"))
-					next
-				}
+				if(sum(rowSums(ordered_corners) == 0) > 0 || nrow(ordered_corners) != nx*ny) next
+
+				if(print.progress && verbose) cat(paste0("\tNumber of internal corners expected: ", nx*ny, "\n", "\tNumber of internal corners found: ", sum(rowSums(ordered_corners) > 0), "\n"))
 				
 				success <- TRUE
+				
+				# FLIP CORNER ORDER IF SPECIFIED
+				if(flip) ordered_corners <- ordered_corners[nrow(ordered_corners):1, ]
 
 				if(!is.null(verify.file)){
 
@@ -384,8 +446,11 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 					sub_pix_win <- sub.pix.win
 				}
 				
+				proc_times[[paste0(dilations, ' findCornerSubPix')]] <- proc.time()[3]
+
 				# FIND CORNERS TO SUBPIXEL RESOLUTION
 				corners_subpixel <- findCornerSubPix(img_gray, ordered_corners, sub_pix_win, sub.pix.max.iter, criteria)
+				proc_times[[paste0(dilations, ' findCornerSubPix')]][2] <- proc.time()[3]
 
 				# REVERSE X,Y ORDER
 				corners_subpixel <- corners_subpixel[, 2:1]
@@ -395,7 +460,7 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 
 				if(!is.null(corner.file)) write.table(corners_subpixel, file=corner.file[image_row, image_col], quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
 		
-				dilations <- dilations.max + 1
+				break
 			}
 			
 			if(success){
@@ -407,6 +472,9 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 			image_num <- image_num + 1
 		}
 	}
+
+	proc_end <- proc.time()[3]
+	#if(verbose) print_processing_times(proc_times, start=proc_start, end=proc_end)
 
 	if(dim(corner_array)[3] == 1 && dim(corner_array)[4] == 1) return(corner_array[, , 1, 1])
 	if(dim(corner_array)[4] == 1) return(corner_array[, , , 1])

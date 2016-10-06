@@ -18,7 +18,7 @@ transformPlanarCalibrationCoordinates <- function(tpar, nx, ny, sx, sy=NULL){
 	for(i in 1:nrow(tpar)){		
 		
 		# ROTATE GRID
-		grid_transform <- grid %*% rotationMatrixZYX(t=c(tpar[i, 1:3]))
+		grid_transform <- grid %*% rotationMatrixZYX_SM(t=c(tpar[i, 1:3]))
 
 		# TRANSLATE GRID
 		coor.3d[((i-1)*nrow(grid)+1):(i*nrow(grid)), ] <- grid_transform + matrix(tpar[i, 4:6], nrow=nrow(grid_transform), ncol=3, byrow=TRUE)

@@ -1777,13 +1777,29 @@ function scrollEvent(e){
 		if(delta > max){delta = max;}
 		if(delta < -max){delta = -max;}
 		imageZoom(Math.round(delta*0.5)/20,s_initialX,s_initialY);
+	}else{
+		if(browser_name == 'Chrome'){
+			var delta = e.wheelDelta;
+			var max = 40;
+			if(delta > max){delta = max;}
+			if(delta < -max){delta = -max;}
+			imageZoom(Math.round(delta*0.1)/20,s_initialX,s_initialY);
+		}else if(browser_name == 'Safari'){
+			var delta = e.wheelDelta;
+			var max = 60;
+			if(delta > max){delta = max;}
+			if(delta < -max){delta = -max;}
+			imageZoom(Math.round(delta*0.1)/20,s_initialX,s_initialY);
+		}else{
+			var delta = e.wheelDelta;
+			var max = 60;
+			if(delta > max){delta = max;}
+			if(delta < -max){delta = -max;}
+			imageZoom(Math.round(delta*0.1)/20,s_initialX,s_initialY);
+		}
 	}
-	if(e.wheelDelta){ // SAFARI
-		var delta = e.wheelDelta;
-		var max = 60;
-		if(delta > max){delta = max;}
-		if(delta < -max){delta = -max;}
-		imageZoom(Math.round(delta*0.1)/20,s_initialX,s_initialY);
+
+	if(e.wheelDelta){ // SAFARI, CHROME
 	}
 }
 

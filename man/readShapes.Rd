@@ -39,9 +39,6 @@ a list of class \code{"shapes"} containing any number of the following elements:
 
  If any of the above objects are absent from the shape file they will be \code{NULL}.
 }
-\references{
-See \href{http://home.uchicago.edu/~aolsen/software/digitizing.shtml}{StereoMorph Digitizing App} for a tutorial on digitizing and reading shape data.
-}
 \author{Aaron Olsen}
 \seealso{
 \code{\link{digitizeImage}}
