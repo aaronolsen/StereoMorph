@@ -139,8 +139,6 @@ shinyServer(function(input, output) {
 				for(i in 1:nrow(shapes$landmarks)) out$landmarks[[i]] <- c(rownames(shapes$landmarks)[i], shapes$landmarks[i, ])
 
 			if(!is.null(out$landmarks) || !is.null(out$curves) || !is.null(out$rulers) || !is.null(out$corners)) out$load_shapes_from_file <- 1
-
-			#print(out)
 		}
 
 		# Find ruler interval

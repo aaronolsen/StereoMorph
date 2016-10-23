@@ -2158,7 +2158,7 @@ function loadShapesFromFile(server_out){
 
 	// Clear ruler interval pixels so it's not read by further server out functions
 	updateScaling()
-
+	
 	// Apply previously saved selection
 	saveApplySelection('apply');
 
