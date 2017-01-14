@@ -158,7 +158,7 @@ estimateDLTCoefficients <- function(cal.list, sample.est, num.sample.est, cal_co
 		cat(paste0("\t\tNumber of unique sets of aspects to try (num.sample.sets): ", num.sample.sets, "\n"))
 		cat(paste0("\t\tNumber of aspects to sample for each set (num.aspects.sample): ", num.aspects.sample, "\n"))
 		if(num.sample.sets > 1){
-			cat(paste0("\t\tAspects in each sets:\n"))
+			cat(paste0("\t\tAspects in each set:\n"))
 			for(i in 1:length(cal_sample_sets)) cat(paste0("\t\t\t", i, ": ", paste(dimnames(cal_corners_trim_est)[[3]][cal_sample_sets[[i]]], collapse=", "), "\n"))
 		}
 		cat(paste0("\t\tUse calibration aspects to determine the best calibration set?: ", optim_with_cal, "\n"))
