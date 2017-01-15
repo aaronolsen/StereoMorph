@@ -77,6 +77,8 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 	img_fnames <- NULL
 	vid_fnames <- NULL
 	vid_nframes <- NULL
+	vid_fps <- NULL
+	vid_dur_sec <- NULL
 	img_size <- NULL
 	video_method <- ''
 
@@ -141,14 +143,9 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 
 		# CHECK THAT FFMPEG IS INSTALLED AND ACCESSIBLE FROM SYSTEM
 		if(video_method == 'ffmpeg'){
-			for(command_name in c('ffmpeg', 'ffprobe')){
-				ffmpeg_v <- tryCatch(
-					expr={system2(command=command_name, args="-version", stdout=TRUE, stderr=TRUE)},
-					error=function(cond) return(NULL),
-					warning=function(cond) return(NULL)
-				)
-				if(is.null(ffmpeg_v)) stop(paste0("The executable '", command_name, "' is not a recognized system command. Please make sure that you have installed the '", command_name, "' executable and that the directory in which it is contained is included in the system $PATH."))
-			}
+
+			check_system_command_SM('ffmpeg')
+
 		}else{
 
 			# CHECK EXEC PATH EXISTS
@@ -165,11 +162,15 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 		if(!is.null(cal.list$vid.nframes) && !is.null(cal.list$img.size) && FALSE){
 
 			vid_nframes <- cal.list$vid.nframes
+			vid_fps <- cal.list$fps
 			img_size <- cal.list$img.size
+			vid_dur_sec <- cal.list$vid.duration
 
 		}else{
 
 			vid_nframes <- rep(NA, length(vid_fnames))
+			vid_fps <- rep(NA, length(vid_fnames))
+			vid_dur_sec <- rep(NA, length(vid_fnames))
 			img_size <- matrix(NA, nrow=num_views, ncol=2, dimnames=list(img_sub_dir, c('w', 'h')))
 
 			if(img_type == 'video'){
@@ -189,10 +190,10 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 						video_i <- read_video_info(ffmpeg_i)
 						#print(video_i)
 						
-						# SET NUMBER OF FRAMES
+						# SET VIDEO INFO
 						vid_nframes[i] <- video_i$frames
-
-						# SET FRAME DIMENSIONS
+						vid_fps[i] <- video_i$fps
+						vid_dur_sec[i] <- video_i$duration.sec
 						img_size[i, ] <- video_i$dims
 
 					}else{
@@ -281,7 +282,9 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 	cal.list[['img.list.files']] <- imgs_list_files
 	cal.list[['min.views']] <- min_views
 	cal.list[['vid.fnames']] <- vid_fnames
+	cal.list[['vid.fps']] <- vid_fps
 	cal.list[['vid.nframes']] <- vid_nframes
+	cal.list[['vid.duration']] <- vid_dur_sec
 
 	# WRITE INPUT PARAMETERS TO CAL.LIST
 	for(write_param in write_param_from_file) cal.list[[write_param]] <- get(write_param)
@@ -412,6 +415,8 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 			# GET MINIMUM NUMBER OF FRAMES AMONG ALL VIDEOS
 			min_nframes <- min(vid_nframes)
 
+			if(video_method == 'ffmpeg') min_duration <- min(vid_dur_sec)
+
 			# CHECK THAT NUMBER OF ASPECTS IN VIDEO EXCEEDS SAMPLE NUMBER
 			if(min_nframes < num.aspects.read + 40){
 				cat('\n')
@@ -423,21 +428,30 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 				if(print.progress) cat(paste0("\t\tDetecting corners in '", vid_fnames[i], "'..."))
 				
 				if(video_method == 'ffmpeg'){
-				
-					## PULL OUT FRAMES INTO VERIFY DIR
-cat('\n')
+
+					# SET FRAME NUMBERS
+					frame_nums <- round(seq(0,min_nframes-5,length=num.aspects.read)) + 1
 					
-					# GET NUMBER OF FRAMES PER SECOND BASED ON NUMBER OF FRAMES
-					fps <- round(num.aspects.read / min_nframes, 5)
+					# EXTRACT FRAMES
+					extractFrames(file=paste0(img.dir, '/', vid_fnames[i]), save.to=paste0(verify.dir, '/', img_sub_dir[i]),
+						frames=frame_nums, video.i=list('fps'=vid_fps[i], 'frames'=min_nframes), warn.min=NULL)
+					
+					# GET FILENAMES
+					save_to_names <- list.files(paste0(verify.dir, '/', img_sub_dir[i]))
 
-					command <- paste0("ffmpeg -i ", gsub(' ', '\\\\ ', img.dir), '/', gsub(' ', '\\\\ ', vid_fnames[i]), 
-						" -qscale:v 2 -filter:v fps=fps=1/30 ", 
-						gsub(' ', '\\\\ ', verify.dir), '/', gsub(' ', '\\\\ ', img_sub_dir[i]), "/%05d.jpeg")
+					for(j in 1:length(save_to_names)){
 
-					print(command)
-					system(command=command)
+						# SPECIFY WHETHER TO FLIP CORNER ORDER
+						if(flip.view && i == 2){flip <- TRUE}else{flip <- FALSE}
 
-					return(1)
+						# SET CORNER FILEPATH
+						corner_fpath <- paste0(corner.dir, '/', img_sub_dir[i], '/', gsub('[.][A-Za-z]+$', '.txt', save_to_names[j]))
+
+						# DETECT CORNERS IN IMAGES IN VERIFY DIRECTORY
+						image_fpath <- paste0(verify.dir, '/', img_sub_dir[i], '/', save_to_names[j])
+						findCheckerboardCorners(image.file=image_fpath, nx=nx, ny=ny, flip=flip, corner.file=corner_fpath, 
+							verify.file=image_fpath, print.progress=FALSE)
+					}
 
 				}else{
 
@@ -986,3 +1000,21 @@ print.calibrateCameras <- function(x, ...){
 		cat('\n')
 	}
 }
+
+
+						## NOTE ON FFMPEG VS OPENCV IN EXTRACTING FRAMES - CORRESPONDENCE DEPENDS ON VIDEO FORMAT
+						# For .mov (from GoPro)
+						# 	The first ffmpeg frame (0 after -ss) is not the same as the first frame using the opencv 
+						#	frame extraction. When given 0 as index, opencv throws an error. The first opencv frame (at index 1)
+						#	corresponds to the second ffmpeg frame. So the "first" frame of these videos seems 
+						#	inaccessible using opencv.
+						# For .avi files (from canon camera)
+						#	For this video opencv does allow a 0 index. The 0 and 1 index opencv frames are identical.
+						#	They appear to be the second frame of the video. The ffmpeg 0 frame appears to be the first
+						#	frame of the video.
+						# For .avi files from the photron cameras (high-speed)
+						#	It seems ffmpeg cannot read these files. 0 index after -ss gives a black frame. This may have something 
+						#	to do with these videos being 'rawvideo' rather than mpeg. opencv gives the same frame for 0 and 1 as index.
+						#command <- paste0('./', gsub(' ', '\\\\ ', '../build/'), 'extract_video_frames ', 
+						#	gsub(' ', '\\\\ ', img.dir), '/', gsub(' ', '\\\\ ', vid_fnames[i]), ' ', gsub(' ', '\\\\ ', verify.dir), '/',
+						#	gsub(' ', '\\\\ ', img_sub_dir[i]), "/", ' ', frame_seq[j]+1, ' ', frame_seq[j]+1)
