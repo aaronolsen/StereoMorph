@@ -450,7 +450,7 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 						# DETECT CORNERS IN IMAGES IN VERIFY DIRECTORY
 						image_fpath <- paste0(verify.dir, '/', img_sub_dir[i], '/', save_to_names[j])
 						findCheckerboardCorners(image.file=image_fpath, nx=nx, ny=ny, flip=flip, corner.file=corner_fpath, 
-							verify.file=image_fpath, print.progress=FALSE)
+							sub.pix.win.min=23, verify.file=image_fpath, print.progress=FALSE)
 					}
 
 				}else{
@@ -565,10 +565,11 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 
 		# CHECK IF UNDISTORTION PARAMETERS ARE ALREADY FOUND
 		estimate_undistortion <- TRUE
-		if(!is.null(cal.list$undistort.params)){
+		if(!is.null(cal.list$undistort.params) && !is.null(cal.list$distort.params)){
 
 			# READ CALIBRATION CORNERS INTO ARRAY
 			undistort_params <- cal.list$undistort.params
+			distort_params <- cal.list$distort.params
 
 			if(print.progress) cat("Undistortion parameters found in the calibration file.\n\n")
 
@@ -582,6 +583,7 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 
 			if(print.progress) cat('\n')
 			undistort_params <- matrix(NA, nrow=num_views, ncol=7, dimnames=list(img_sub_dir, c('cx', 'cy', 'k1', 'k2', 'k3', 'p1', 'p2')))
+			distort_params <- matrix(NA, nrow=num_views, ncol=7, dimnames=list(img_sub_dir, c('cx', 'cy', 'k1', 'k2', 'k3', 'p1', 'p2')))
 		}
 
 		# SET MAXIMUM NUMBER OF ASPECTS TO USE IN UNDISTORTION
@@ -598,15 +600,20 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 				# SELECT AMONG NON-NA ASPECTS, SPECIFIED NUMBER BUT NO MORE THAN LENGTH
 				undist_sample_nona <- undist_sample_nona[1:min(max_undist_sample, length(undist_sample_nona))]
 				#undist_sample_nona <- undist_sample_nona[round(seq(1, length(undist_sample_nona), length=min(max_undist_sample, length(undist_sample_nona))))]
-				
-				# ESTIMATE DISTORTION COEFFICIENTS
-				dist_params <- estimateDistortion(coor.2d=cal_corners[, , undist_sample_nona, view], nx, 
+
+				# ESTIMATE UNDISTORTION COEFFICIENTS
+				undist_params <- estimateUndistortion(coor.2d=cal_corners[, , undist_sample_nona, view], nx, 
 					image.size=img_size[view, ])
+
+				# ESTIMATE DISTORTION COEFFICIENTS (TO DISTORT EPIPOLAR LINES)
+				dist_params <- estimateDistortion(undist_params, img_size[view, ])
 				
-				undistort_params[view, ] <- dist_params
+				undistort_params[view, ] <- undist_params
+				distort_params[view, ] <- dist_params
 			}
 
 			cal.list[['undistort.params']] <- undistort_params
+			cal.list[['distort.params']] <- distort_params
 
 			# SAVE CALIBRATION LIST
 			list2XML4R(list('calibration' = cal.list), file=cal.file)
