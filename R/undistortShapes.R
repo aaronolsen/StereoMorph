@@ -19,7 +19,7 @@ undistortShapes <- function(shapes, cal.file, view = NULL){
 
 				# Undistort
 				shapes$landmarks.pixel[, , view] <- undistort(shapes$landmarks.pixel[, , view], 
-					image.size=cal_list$img.size[view, ], c=cal_list$undistort.params[view, c('cx', 'cy')], 
+					image.size=cal_list$img.size[view, ], center=cal_list$undistort.params[view, c('cx', 'cy')], 
 					k=cal_list$undistort.params[view, c('k1', 'k2', 'k3')], 
 					p=cal_list$undistort.params[view, c('p1', 'p2')])
 			}
@@ -29,7 +29,7 @@ undistortShapes <- function(shapes, cal.file, view = NULL){
 
 			# Undistort
 			shapes$landmarks.pixel <- undistort(shapes$landmarks.pixel, 
-				image.size=cal_list$img.size[view, ], c=cal_list$undistort.params[view, c('cx', 'cy')], 
+				image.size=cal_list$img.size[view, ], center=cal_list$undistort.params[view, c('cx', 'cy')], 
 				k=cal_list$undistort.params[view, c('k1', 'k2', 'k3')], 
 				p=cal_list$undistort.params[view, c('p1', 'p2')])
 		}
