@@ -1,4 +1,4 @@
-estimateDistortion <- function(coor.2d, cal.nx, image.size){
+estimateUndistortion <- function(coor.2d, cal.nx, image.size){
 
 	# GET NUMBER OF CORNERS IN OTHER DIMENSION
 	cal.ny <- dim(coor.2d)[1] / cal.nx
@@ -35,7 +35,7 @@ estimateDistortion <- function(coor.2d, cal.nx, image.size){
 	par <- as.list(rep(NA, length(p_start)))
 	
 	# SAVE OBJECTIVE WITH NO DISTORTION
-	objectives[1] <- distortionError(p=c(image.size[1]/2, image.size[2]/2, p_start[[1]]), 
+	objectives[1] <- undistortionError(p=c(image.size[1]/2, image.size[2]/2, p_start[[1]]), 
 		coor.img=coor.2d, coor.obj=coor_obj_array, image.size=image.size)
 	par[[1]] <- c(image.size[1]/2, image.size[2]/2, p_start[[1]])
 
@@ -45,7 +45,7 @@ estimateDistortion <- function(coor.2d, cal.nx, image.size){
 		# FIND OPTIMAL DISTORTION COEFFICIENTS, SKIP IF RETURNS ERROR
 		nlm_fit <- tryCatch(
 			expr={
-				nlminb(start=c(image.size[1]/2, image.size[2]/2, p_start[[i]]), objective=distortionError, 
+				nlminb(start=c(image.size[1]/2, image.size[2]/2, p_start[[i]]), objective=undistortionError, 
 					coor.img=coor.2d, coor.obj=coor_obj_array, image.size=image.size)
 			},
 			error=function(cond) return(NULL),
