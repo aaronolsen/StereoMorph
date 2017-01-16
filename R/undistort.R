@@ -1,13 +1,11 @@
 undistort <- function(x, image.size, center=c(0,0), k=rep(0, 3), p=rep(0, 2)){
 
-	# FIND SCALE FOR X
-	#scale <- 1/max(x)
-	
-	#x <- scale*x
-	if(length(k) < 3) k <- c(k, 0)
+	if(length(k) == 2) k <- c(k, 0)
 	
 	k[is.na(k)] <- 0
 	p[is.na(p)] <- 0
+
+	if(is.vector(x)) x <- matrix(x, nrow=1, ncol=length(x))
 
 	xu <- x
 	if(length(dim(x)) == 4){
@@ -37,8 +35,6 @@ undistort <- function(x, image.size, center=c(0,0), k=rep(0, 3), p=rep(0, 2)){
 		xu[i, ] <- center + radd + tand
 		#xu[i, ] <- center + radd
 	}
-
-	#xu <- xu*(1/scale)
 	
 	xu
 }
