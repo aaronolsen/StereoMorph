@@ -1,6 +1,6 @@
 dltEpipolarLine <- function(p, cal.coeff1, cal.coeff2 = NULL, self=FALSE){
 	# Translated and modified from Matlab function partialdlt written by Ty Hedrick
-	# 'self' added, after Yekutieli et al. 2007
+	# 'self' added, after Yekutieli et al. 2007. Returns epipolar line in 2nd image plane.
 
 	# IF COEFFICIENT MATRIX IS INPUT TO FIRST COEFFICIENT PARAMETER
 	if(is.null(cal.coeff2)){cal.coeff2 <- cal.coeff1[, 2];cal.coeff1 <- cal.coeff1[, 1];}
