@@ -1,6 +1,6 @@
 findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify.file=NULL, 
 	perim.min = 'auto', perim.max = 'auto', dilations.min = 0, dilations.max = 7, sub.pix.win = NULL,
-	quad.fit.max=4, poly.cont.min=-0.3, poly.cont.max=0.3, quad.approx.thresh = 'auto', 
+	sub.pix.win.min = NULL, quad.fit.max=4, poly.cont.min=-0.3, poly.cont.max=0.3, quad.approx.thresh = 'auto', 
 	flip = FALSE, print.progress = TRUE, verbose = FALSE, debug = FALSE) {
 
 	proc_start <- proc.time()[3]
@@ -445,6 +445,9 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 				}else{
 					sub_pix_win <- sub.pix.win
 				}
+				
+				# APPLY MIN SUB PIXEL WINDOW SIZE - THIS DIDN'T SEEM TO REDUCE INEXACT CORNER DETECTION FOR SMALL SQUARES
+				if(!is.null(sub.pix.win.min)) sub_pix_win <- max(sub_pix_win, sub.pix.win.min)
 				
 				proc_times[[paste0(dilations, ' findCornerSubPix')]] <- proc.time()[3]
 
