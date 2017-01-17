@@ -7,13 +7,13 @@
 \alias{cprod_SM}
 \alias{createErrorPlots}
 \alias{dilateImage}
-\alias{distortionError}
+\alias{undistortionError}
 \alias{dltCCEstimateStartParams}
 \alias{drawRectangle}
 \alias{drawShapes}
 \alias{equalizeImageHist}
 \alias{erodeImage}
-\alias{estimateDistortion}
+\alias{estimateUndistortion}
 \alias{estimateDLTCoefficients}
 \alias{findBoundaryPoints}
 \alias{findCornerSubPix}

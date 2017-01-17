@@ -1,7 +1,7 @@
 \name{digitizeImages}
 \alias{digitizeImages}
 \title{Opens the StereoMorph Digitizing App}
-\description{This function opens an application in the user's default web browser for manually digitizing landmarks and Bezier curves from photographs. This function replaces digitizeImage.}
+\description{This function opens an application in the user's default web browser for manually digitizing landmarks and Bezier curves from photographs.}
 \usage{	
 digitizeImages(image.file, shapes.file=NULL, landmarks.file=NULL, 
      control.points.file=NULL, curve.points.file=NULL, 
@@ -32,7 +32,7 @@ digitizeImages(image.file, shapes.file=NULL, landmarks.file=NULL,
   \item{app.dir}{changes the shiny app directory for debugging.}
 }
 \details{
-This function opens a digitizing app in the user's default browswer and allows for the digitization of landmarks and Bezier curves from photographs. Although the app runs in a web browser, the user does not have to be connected to the internet as the app runs on a local server. The R package 'shiny' handles the communication between the browser and the R console. Safari, Chrome and Opera all provide full compatibility with the apps's features.
+This function opens a digitizing app in the user's default browswer and allows for the digitization of landmarks and Bezier curves from photographs. Although the app runs in a web browser, the user does not have to be connected to the internet as the app runs on a local server. The R package 'shiny' handles the communication between the browser and the R console. Safari, Chrome and Opera all provide full compatibility with the apps's features. Please see \href{https://aaronolsen.github.io/software/stereomorph.html}{StereoMorph tutorials} for step-by-step tutorials on how to use \strong{StereoMorph} for 2D or 3D shape data collection.
 }
 \value{
 NULL
