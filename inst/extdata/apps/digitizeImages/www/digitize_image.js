@@ -2007,7 +2007,7 @@ function loadNewImage(server_out){
 	myImageInit[0].h = server_out.image_height;
 	myImageInit[0].id = 'img1';
 	myImageInit[0].src = 'img/' + server_out.image_fname;
-	
+
 	// Reload image
 	//alert('img/' + server_out.image_fname);
 	reloadImage(0, 0, server_out.image_width, server_out.image_height, 'img1', 'img/' + server_out.image_fname);

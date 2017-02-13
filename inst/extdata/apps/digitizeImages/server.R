@@ -49,10 +49,10 @@ shinyServer(function(input, output) {
 				json_list$image_fname <- paste0(substr(str,1, regexpr_r[1]-1), '_view_', json_list$add_view, substr(str,regexpr_r[1],nchar(str)))
 			}
 
-			# Copy image into www/img folder
+			# Copy image into www/img folder (replace space with %20 or else browser can't link to it, bc it links by url?)
 			if(print.progress) cat(paste0('Submit ', json_list$submit_ct, ': Changing to image "', json_list$image_fpath, '"\n'))
-			file.copy(from=image_full_fpath, to=paste0('www/img/', json_list$image_fname))
-			
+			file.copy(from=image_full_fpath, to=paste0('www/img/', gsub(' ', '%20', json_list$image_fname)))
+
 			# Get image size
 			out$image_size <- file.info(image_full_fpath)$size
 			out$image_fname <- json_list$image_fname
