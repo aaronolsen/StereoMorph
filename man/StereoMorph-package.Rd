@@ -4,17 +4,21 @@
 
 \alias{alignShapesToMidline}
 \alias{checkCornerOrder}
+\alias{check_system_command_SM}
 \alias{cprod_SM}
 \alias{createErrorPlots}
 \alias{dilateImage}
-\alias{undistortionError}
+\alias{distortionError}
 \alias{dltCCEstimateStartParams}
 \alias{drawRectangle}
 \alias{drawShapes}
+\alias{epipolarBezier}
 \alias{equalizeImageHist}
 \alias{erodeImage}
+\alias{estimateDistortion}
 \alias{estimateUndistortion}
 \alias{estimateDLTCoefficients}
+\alias{extractFrames}
 \alias{findBoundaryPoints}
 \alias{findCornerSubPix}
 \alias{findEpipolarTangencyAngles}
@@ -32,17 +36,23 @@
 \alias{print_processing_times}
 \alias{process_digitize_images_input}
 \alias{readLandmarksToArray}
+\alias{readTPS}
 \alias{readXML4R}
 \alias{readXMLLines}
+\alias{read_video_info}
 \alias{reflectMissingShapes}
 \alias{removeOutlierCorners}
 \alias{rgbToGray}
 \alias{rotationMatrixZYX_SM}
 \alias{undistort}
+\alias{undistortionError}
+\alias{undistortShapes}
 \alias{uvector_SM}
 \alias{testCalibration}
 \alias{thresholdImageMatrix}
 \alias{tMatrixDC_SM}
+\alias{TPSToShapes}
+\alias{writeLMToTPS}
 \alias{XML4R2list}
 \alias{XML4R2listLines}
 
