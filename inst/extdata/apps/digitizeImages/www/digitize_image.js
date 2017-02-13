@@ -27,6 +27,7 @@ var drag_div_mouse_down;
 var end_dupl = new Array();
 var epipolar_slope = "NA";
 var epipolar_intercept = "NA";
+var epipolar_cubic = "NA";
 var find_ruler_interval_run_after = "NA";
 var frame_color = '#FFF3CE';
 var globalkeypress = '';
@@ -199,7 +200,9 @@ function addCurvePointField(curve_num, at){
 	drawBezierCurve(curve_num);
 
 	// Because curve points have been re-indexed, select re-indexed curve point
-	if(reset_current_curve) selectObject('curve', current_curve, current_curve_point, true);
+	if(reset_current_curve){
+		selectObject('curve', current_curve, current_curve_point, true);
+	}
 
 //	alert(printArrayToString(curves[curve_num]));
 //	alert(curve_num + ',' + at)
@@ -601,9 +604,13 @@ function clearCurves(num){
 
 function clearEpipolarLine(){
 
-	var line = svgDocument.getElementById('epipolar_line');
-	if(line){svgDocument.getElementById("world").removeChild(line);}
+	var i;
 
+	for(i=0;i < init_params.num_views;i++){
+
+		var line = svgDocument.getElementById('epipolar_line' + i);
+		if(line){svgDocument.getElementById("world").removeChild(line);}
+	}
 }
 
 function clearLandmarks(clear_curves){
@@ -1252,44 +1259,93 @@ function drawCheckerboardCorners(corners_in){
 
 function drawEpipolarLine(){
 
+	var i, j, cb, d;
+	
 	clearEpipolarLine();
-	
-	if(epipolar_slope == 'NA' || epipolar_intercept == 'NA') return;
 
-	// Find x-intercept
-	var x_int = -parseFloat(epipolar_intercept) / parseFloat(epipolar_slope);
-	
-	// Set x2
-	//var x1 = -photograph.pw*2;
-	//var x2 = photograph.pw*2;
+	//alert('Input: ' + epipolar_cubic)
 
-	var x1 = -photograph.pw;
-	var x2 = photograph.pw;
-	
-	var xy1 = moveToTarget(0,0,x1,parseFloat(epipolar_slope)*x1+parseFloat(epipolar_intercept),photograph.w/photograph.pw,photograph.h/photograph.ph,1);
-	var xy2 = moveToTarget(0,0,x2,parseFloat(epipolar_slope)*x2+parseFloat(epipolar_intercept),photograph.w/photograph.pw,photograph.h/photograph.ph,1);
+	if(epipolar_slope == 'NA' && epipolar_cubic == 'NA') return;
 
-	//alert(epipolar_slope + ' ' + x_int + ' ' + (1/parseFloat(epipolar_slope))*photograph.ph);
-	//alert(photograph.w + ', ' + photograph.h);
-	//alert((xy1[0] + photograph.x) + ',' + (xy1[1] + photograph.y) + ' ' + (xy2[0] + photograph.x) + ',' + (xy2[1] + photograph.y))
+	var eline_colors = new Array('yellow', 'orange', 'aqua', 'magenta', 'red', 'slateblue');
+
+	for(i=0;i < init_params.num_views;i++){
+
+		if(epipolar_slope != 'NA'){
+
+			//alert('Linear: ' + epipolar_slope)
+		
+			if(epipolar_slope[i] == 'NA'){continue;}
 	
-	// Near vertical lines do not print properly - rounding error? Change to purely vertical line if change in x over entire image is less than 0.3 px
-	if(Math.abs((1/parseFloat(epipolar_slope))*photograph.ph) < 0.3){
-		xy1 = moveToTarget(0,0,x_int,0,photograph.w/photograph.pw,photograph.h/photograph.ph,1);
-		xy2 = moveToTarget(0,0,x_int,photograph.ph,photograph.w/photograph.pw,photograph.h/photograph.ph,1);
+			var i_slope = epipolar_slope[i];
+			var i_intercept = epipolar_intercept[i];
+
+			// Find x-intercept
+			var x_int = -parseFloat(i_intercept) / parseFloat(i_slope);
+	
+			var x1 = -photograph.pw;
+			var x2 = photograph.pw;
+	
+			var xy1 = moveToTarget(0,0,x1,parseFloat(i_slope)*x1+parseFloat(i_intercept),photograph.w/photograph.pw,photograph.h/photograph.ph,1);
+			var xy2 = moveToTarget(0,0,x2,parseFloat(i_slope)*x2+parseFloat(i_intercept),photograph.w/photograph.pw,photograph.h/photograph.ph,1);
+
+			//alert(i_slope + ' ' + x_int + ' ' + (1/parseFloat(i_slope))*photograph.ph);
+			//alert(photograph.w + ', ' + photograph.h);
+			//alert((xy1[0] + photograph.x) + ',' + (xy1[1] + photograph.y) + ' ' + (xy2[0] + photograph.x) + ',' + (xy2[1] + photograph.y))
+	
+			// Near vertical lines do not print properly - rounding error? Change to purely vertical line if change in x over entire image is less than 0.3 px
+			if(Math.abs((1/parseFloat(i_slope))*photograph.ph) < 0.3){
+				xy1 = moveToTarget(0,0,x_int,0,photograph.w/photograph.pw,photograph.h/photograph.ph,1);
+				xy2 = moveToTarget(0,0,x_int,photograph.ph,photograph.w/photograph.pw,photograph.h/photograph.ph,1);
+			}
+
+			var line = svgDocument.createElementNS(svgns, "line");
+			line.setAttribute("id", 'epipolar_line' + i);
+			line.setAttribute("x1", xy1[0] + photograph.x);
+			line.setAttribute("y1", xy1[1] + photograph.y);
+			line.setAttribute("x2", xy2[0] + photograph.x);
+			line.setAttribute("y2", xy2[1] + photograph.y);
+			line.setAttribute("stroke-width", 1);
+			line.setAttribute("style", "stroke:" + eline_colors[i] + ";");
+			line.addEventListener("mousedown", function(evt) { evt.preventDefault(); }, false); // evt.preventDefault(); keeps browser from treating the image as if it is going to be exported out of the window
+			line.addEventListener("dblclick", function(evt) { dblClickEvent(evt); }, false);
+			svgDocument.getElementById("world").appendChild(line);
+		}
+
+		if(epipolar_cubic != 'NA'){
+
+			//alert('Cubic: ' + epipolar_cubic)
+
+			for(i=0;i < init_params.num_views;i++){
+			
+				if(epipolar_cubic[i*8] == 'NA') continue;
+
+				cb = epipolar_cubic.slice(i*8, i*8 + 8);
+
+				// Apply transformation
+				var tb = new Array();
+				for(j = 0;j < cb.length;j=j+2){
+					tb[j/2] = moveToTarget(0, 0, cb[j], cb[j+1], photograph.w/photograph.pw, photograph.h/photograph.ph, 1)
+					tb[j/2][0] += photograph.x;
+					tb[j/2][1] += photograph.y;
+				}
+				
+				d = 'M'+tb[0][0]+' '+tb[0][1]+' C '+tb[1][0]+' '+tb[1][1]+', '+tb[2][0]+' '+tb[2][1]+', '+tb[3][0]+' '+tb[3][1];
+				
+				var path = svgDocument.createElementNS(svgns, "path");
+				path.setAttribute("id", 'epipolar_line' + i);
+				path.setAttribute("fill", "none");
+				path.setAttribute("stroke-width", 1);
+				path.setAttribute("style", "stroke:" + eline_colors[i] + ";");
+				path.addEventListener("mousedown", function(evt) { evt.preventDefault(); }, false); // evt.preventDefault(); keeps browser from treating the image as if it is going to be exported out of the window
+				path.addEventListener("dblclick", function(evt) { dblClickEvent(evt); }, false);
+				path.setAttribute("d", d);
+				svgDocument.getElementById("world").appendChild(path);
+			}
+		}
 	}
-
-	var line = svgDocument.createElementNS(svgns, "line");
-	line.setAttribute("id", 'epipolar_line');
-	line.setAttribute("x1", xy1[0] + photograph.x);
-	line.setAttribute("y1", xy1[1] + photograph.y);
-	line.setAttribute("x2", xy2[0] + photograph.x);
-	line.setAttribute("y2", xy2[1] + photograph.y);
-	line.setAttribute("stroke-width", 1);
-	line.setAttribute("style", "stroke:yellow;");
-	line.addEventListener("mousedown", function(evt) { evt.preventDefault(); }, false); // evt.preventDefault(); keeps browser from treating the image as if it is going to be exported out of the window
-	line.addEventListener("dblclick", function(evt) { dblClickEvent(evt); }, false);
-	svgDocument.getElementById("world").appendChild(line);
+	
+	//alert(epipolar_slope)
 }
 
 function drawMarker(id, num1, num2, x, y, redraw_bezier){
@@ -1988,7 +2044,7 @@ function loadShapesFromFile(server_out){
 	
 	// Save the currently selected object - this ensures the same object stays selected across changing the image
 	saveApplySelection('save');
-
+	
 	// If only copying selected landmark, clear all landmarks except current landmark
 	if(getRadios('copy_landmarks') == 'selected'){
 		for(i = 0; i < landmarks.length; i++) if(i !== current_landmark) deleteLandmark(i);
@@ -2026,6 +2082,7 @@ function loadShapesFromFile(server_out){
 	clearEpipolarLine();
 	epipolar_slope = "NA";
 	epipolar_intercept = "NA";
+	epipolar_cubic = "NA";
 
 	// Landmarks added array - array to keep track of loaded landmarks
 	loaded_landmarks = new Array();
@@ -2042,7 +2099,8 @@ function loadShapesFromFile(server_out){
 			if(server_out.curves[i].length > 5) clearCurves(num);
 			
 			// Save last curve control point first so it is not added as intermediate curve point
-			addCurvePoint(num, curves[num].length-1, parseFloat(server_out.curves[i][(server_out.curves[i].length-2)]), parseFloat(server_out.curves[i][(server_out.curves[i].length-1)]));
+			addCurvePoint(num, curves[num].length-1, parseFloat(server_out.curves[i][(server_out.curves[i].length-2)]), 
+				parseFloat(server_out.curves[i][(server_out.curves[i].length-1)]));
 
 			k = 0;
 			for(j = 1; j < server_out.curves[i].length-2; j = j + 2){
@@ -2336,6 +2394,8 @@ function onLoadFunctions(evt){
 	changeImage(document.getElementById("submit_aspect_image_names"));
 
 	marker_selected = 0;
+	
+	selectObject('landmark', 1)
 }
 
 function onWindowResize(){
@@ -2527,11 +2587,17 @@ function saveApplySelection(what){
 		}else if(current_ruler !== 'NA'){
 			current_selection[0] = ['ruler', current_ruler, 0];
 		}
+
+		// Nothing selected
+		if(current_selection[0][0] == 'NA') return;
+		
+		// Clear selection after saving (having selection active was messing up shape loading on next image load)
+		selectObject(current_selection[0][0], current_selection[0][1], current_selection[0][2]);
 	}
 
 	// Apply previously saved selection
 	if(what == 'apply'){
-		
+
 		if(current_selection[0] == undefined){
 			selectObject("NA", 0, 0, true);
 			return;
@@ -2984,7 +3050,9 @@ function submitCaptureOutput(){
 
 				epipolar_slope = server_out.slope;
 				epipolar_intercept = server_out.intercept;
+				epipolar_cubic = server_out.cubic;
 				drawEpipolarLine();
+
 				//loadFrame();
 			}
 			
@@ -3219,6 +3287,7 @@ function updateEpipolarLine(type, num1, num2){
 		clearEpipolarLine();
 		epipolar_slope = "NA";
 		epipolar_intercept = "NA";
+		epipolar_cubic = "NA";
 		return;
 	}
 
@@ -3238,6 +3307,7 @@ function updateEpipolarLine(type, num1, num2){
 		clearEpipolarLine();
 		epipolar_slope = "NA";
 		epipolar_intercept = "NA";
+		epipolar_cubic = "NA";
 		return;
 	}
 	
@@ -3246,6 +3316,7 @@ function updateEpipolarLine(type, num1, num2){
 		clearEpipolarLine();
 		epipolar_slope = "NA";
 		epipolar_intercept = "NA";
+		epipolar_cubic = "NA";
 		return;
 	}
 
@@ -3259,6 +3330,9 @@ function updateEpipolarLine(type, num1, num2){
 	submit_params.current_view = current_view + 1;
 	submit_params.all_views = shape_files;
 	submit_params.shape_type = 'landmarks.pixel';
+	submit_params.undistort_params = init_params.undistort_params;
+	submit_params.distort_params = init_params.distort_params;
+	submit_params.img_size = init_params.img_size;
 	submit_params.cal_coeffs = init_params.cal_coeffs;
 	
 	if(type == 'landmark'){

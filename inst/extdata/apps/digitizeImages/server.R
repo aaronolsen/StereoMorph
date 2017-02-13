@@ -60,7 +60,7 @@ shinyServer(function(input, output) {
 			# Get image dimensions
 			if(grepl(pattern='[.]jpg$|[.]jpeg$', x=image_full_fpath, ignore.case=TRUE)) img_dim <- dim(readJPEG(image_full_fpath, native=TRUE))
 			if(grepl(pattern='[.]png$', x=image_full_fpath, ignore.case=TRUE)) img_dim <- dim(readPNG(image_full_fpath, native=TRUE))
-			if(grepl(pattern='[.]tif$|[.]tiff$', x=image_full_fpath, ignore.case=TRUE)) img_dim <- dim(readTIFF(image_full_fpath, native=TRUE))
+			if(grepl(pattern='[.]tif$|[.]tiff$', x=image_full_fpath, ignore.case=TRUE)) img_dim <- dim(suppressWarnings(readTIFF(image_full_fpath, native=TRUE)))
 		
 			# Set image dimensions
 			out$image_width <- img_dim[2]
@@ -272,11 +272,11 @@ shinyServer(function(input, output) {
 				if(!is.null(json_list$checker_square_pixel) && json_list$checker_square_pixel != "NA") shapes$square.pixel <- json_list$checker_square_pixel
 				if(!is.null(json_list$checkerboard_ny) && json_list$checkerboard_ny != "NA") shapes$checkerboard.ny <- json_list$checkerboard_ny
 				if(!is.null(json_list$checkerboard_nx) && json_list$checkerboard_nx != "NA") shapes$checkerboard.nx <- json_list$checkerboard_nx
-				if(!is.null(json_list$ruler_interval_pixels) && json_list$ruler_interval_pixels != "NA") shapes$ruler.pixel <- json_list$ruler_interval_pixels
+				if(!is.null(json_list$ruler_interval_pixels) && json_list$ruler_interval_pixels != "NA" && !is.na(scaling_wpp)) shapes$ruler.pixel <- json_list$ruler_interval_pixels
 				if(!is.null(json_list$ruler_interval_world) && json_list$ruler_interval_world != "NA") shapes$ruler.interval <- json_list$ruler_interval_world
 				if(!is.null(json_list$scaling_units) && json_list$scaling_units != "NA") shapes$scaling.units <- json_list$scaling_units
 				shapes$scaling <- scaling_wpp
-				shapes$image.name <- json_list$image_fname
+				#shapes$image.name <- json_list$image_fname
 			}
 			
 			# Parse landmarks for saving
@@ -439,20 +439,40 @@ shinyServer(function(input, output) {
 		# Find epipolar line
 		if(!is.null(json_list$find_epipolar_line)){
 
-			slopes <- c()
-			intercepts <- c()
+			out$slope <- c()
+			out$intercept <- c()
+			out$cubic <- c()
+
+			# Read calibration coefficients to matrix
+			cal_coeffs <- matrix(as.numeric(unlist(json_list$cal_coeffs)), nrow=11, byrow=TRUE)
+
+			# Read distortion related info to matrices
+			if(json_list$undistort_params[1] != ''){
+				undistort_params <- matrix(suppressWarnings(as.numeric(unlist(json_list$undistort_params))), nrow=2, byrow=TRUE)
+				distort_params <- matrix(suppressWarnings(as.numeric(unlist(json_list$distort_params))), nrow=2, byrow=TRUE)
+				img_size <- matrix(as.numeric(unlist(json_list$img_size)), nrow=2, byrow=TRUE)
+			}
 
 			for(i in 1:length(json_list$all_views)){
-			
+
 				# Skip current view
-				if(i == json_list$current_view) next
+				if(i == json_list$current_view){
+					if(json_list$undistort_params[1] == ''){
+						out$slope <- c(out$slope, "NA")
+						out$intercept <- c(out$intercept, "NA")
+					}else{
+						out$cubic <- c(out$cubic, rep("NA", 8))
+					}
+					next
+				}
 
 				# Get file path
 				full_shape_fpath <- paste0(json_list$prev_wd, '/', json_list$all_views[i])
+				#full_shape_fpath <- paste0(json_list$prev_wd, '/', json_list$all_views[json_list$current_view])
 
 				# Skip non-existant or empty files
 				if(!file.exists(full_shape_fpath) || file.info(full_shape_fpath)$size == 0) next
-				
+
 				# Get shapes
 				shapes_list <- XML4R2list(full_shape_fpath)$shapes
 
@@ -460,7 +480,7 @@ shinyServer(function(input, output) {
 				if(!json_list$shape_type %in% names(shapes_list)) next
 
 				# Landmark from view other than current
-				landmark  <- rep(NA, 2)
+				landmark <- rep(NA, 2)
 				
 				if(json_list$shape_type == 'landmarks.pixel'){
 				
@@ -474,23 +494,37 @@ shinyServer(function(input, output) {
 				# Skip if landmark is NA
 				if(is.na(landmark[1])) next
 				
-				# Read calibration coefficients to matrix
-				cal_coeffs <- matrix(as.numeric(unlist(json_list$cal_coeffs)), nrow=11, byrow=TRUE)
+				# Check if there are undistortion parameters
+				if(json_list$undistort_params[1] == ''){
 
-				# Find epipolar line
-				dlt_epipolar_line <- dltEpipolarLine(landmark, cal_coeffs[, i], cal_coeffs[, json_list$current_view])
-				
-				slopes <- c(slopes, dlt_epipolar_line$m)
-				intercepts <- c(intercepts, dlt_epipolar_line$b)
+					# Find epipolar line (no distortion case)
+					dlt_epipolar_line <- dltEpipolarLine(landmark, cal_coeffs[, c(i, json_list$current_view)])
+
+					out$slope <- c(out$slope, dlt_epipolar_line$m)
+					out$intercept <- c(out$intercept, dlt_epipolar_line$b)
+
+				}else{
+
+					# Find Epipolar curve as Bezier (distortion present)
+					#print(list(p=landmark, cal.coeff=cal_coeffs, 
+					#	undistort.coeff=undistort_params, distort.coeff=distort_params,
+					#	img.size=img_size, views=c(i, json_list$current_view)))
+					ebezier <- epipolarBezier(p=landmark, cal.coeff=cal_coeffs, 
+						undistort.coeff=undistort_params, distort.coeff=distort_params,
+						img.size=img_size, views=c(i, json_list$current_view))
+					
+					#print(ebezier)
+					
+					bpts <- c(ebezier$p[[1]][1], ebezier$p[[2]][1], ebezier$p[[1]][2], ebezier$p[[2]][2],
+						ebezier$p[[1]][3], ebezier$p[[2]][3], ebezier$p[[1]][4], ebezier$p[[2]][4])
+					
+					out$cubic <- c(out$cubic, bpts)
+				}
 			}
 			
-			if(length(slopes) == 0){
-				out$slope <- "NA"
-				out$intercept <- "NA"
-			}else{
-				out$slope <- mean(slopes)
-				out$intercept <- mean(intercepts)
-			}
+			if(length(out$slope) == 0) out$slope <- "NA"
+			if(length(out$intercept) == 0) out$slope <- "NA"
+			if(length(out$cubic) == 0) out$cubic <- "NA"
 		}
 
 		out_str <- listToJSONStr(out, direct=TRUE)
