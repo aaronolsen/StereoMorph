@@ -210,8 +210,8 @@ double evalQuadFit(std::vector<int> &row, std::vector<int> &col, std::vector<int
 	int rpt = 0;			// Repeat count, loop is repeated twice in case quad lines do not start at first contour point
 	bool ibreak = false;	// Set internal break
 
-	int i, j;
-	int drow, dcol;
+	unsigned int i;
+	int j, drow, dcol;
 	int add_r_it, add_c_it;
 	int max_it, qdiffsum;
 	int x, y;
