@@ -52,11 +52,11 @@ dltTestCalibration <- function(cal.coeff, coor.2d, nx, sq.size, reciprocal = TRU
 
 		# Find major axis of 3D points
 		pca <- princomp(corners_3d_centers)
-		prin_comp <- rbind(cprod(pca$loadings[, 'Comp.1'], pca$loadings[, 'Comp.2']), pca$loadings[, 'Comp.2'], pca$loadings[, 'Comp.1'])
+		prin_comp <- rbind(cprod_SM(pca$loadings[, 'Comp.1'], pca$loadings[, 'Comp.2']), pca$loadings[, 'Comp.2'], pca$loadings[, 'Comp.1'])
 		#print(prin_comp)
 
 		# Align the principal components with z,y,x
-		RM <- tMatrixDC(prin_comp, diag(3))
+		RM <- tMatrixDC_SM(prin_comp, diag(3))
 	
 		# Apply rotation matrix
 		for(aspect in 1:dim(corners_3d)[3]) corners_3d[, , aspect] <- corners_3d[, , aspect] %*% RM
