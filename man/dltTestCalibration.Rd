@@ -8,7 +8,7 @@ This function uses a set of grid points, ideally other than those used in stereo
 }
 \usage{
 dltTestCalibration(cal.coeff, coor.2d, nx, sq.size, 
-                   reciprocal = TRUE)
+                   reciprocal = TRUE, align.princomp = FALSE)
 
 \method{summary}{dltTestCalibration}(object, print.tab = '', ...)
 }
@@ -18,6 +18,7 @@ dltTestCalibration(cal.coeff, coor.2d, nx, sq.size,
   \item{nx}{the number of points along the first dimension (e.g. this would be the number of points in each row if points in \code{coor.2d} are listed first by row). The number of points along the second dimension is calculated based on the total number of points per view and orientation.}
   \item{sq.size}{the size of the grid squares in real-world units (e.g. millimeters).}
   \item{reciprocal}{a logical indicating whether epipolar distance should be calculated reciprocally and then averaged.}
+  \item{align.princomp}{a logical indicating whether checkerboard corners should be aligned along principal coordinate axes prior to error testing (serves to describe error along axes that may be more physically meaningful than the initial, arbitrary coordinate system).}
   \item{object}{a list of class \code{"dltTestCalibration"} (the output of \code{dltTestCalibration()}).}
   \item{print.tab}{Tabs preceding lines printed to console.}
  \item{...}{further arguments passed to or from other methods.}

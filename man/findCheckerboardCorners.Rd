@@ -7,8 +7,8 @@ This function finds the internal corners of a checkerboard pattern in an image.
 \usage{
 findCheckerboardCorners(image.file, nx, ny, corner.file=NULL, verify.file=NULL, 
                         perim.min = 'auto', perim.max = 'auto', dilations.min = 0,
-                        dilations.max = 7, sub.pix.win = NULL, quad.fit.max=4,
-                        poly.cont.min=-0.3, poly.cont.max=0.3, 
+                        dilations.max = 7, sub.pix.win = NULL, sub.pix.win.min = NULL, 
+                        quad.fit.max=4, poly.cont.min=-0.3, poly.cont.max=0.3, 
                         quad.approx.thresh = 'auto', flip = FALSE, 
                         print.progress=TRUE, verbose=FALSE, debug = FALSE)
 }
@@ -23,6 +23,7 @@ findCheckerboardCorners(image.file, nx, ny, corner.file=NULL, verify.file=NULL,
   \item{dilations.min}{The initial number of dilations to perform on the image. See "Details".}
   \item{dilations.max}{The maximum number of dilations to perform on the image. If equal to \code{dilations.min}, the function will only perform one dilation. See "details".}
   \item{sub.pix.win}{The window size to use in determining the corner positions to subpixel resolution. If \code{NULL}, this is determined automatically based on the size of the found corners.}
+  \item{sub.pix.win.min}{Only relevant if sub.pix.win is \code{NULL}. This sets the minimum window size that can be set by default.}
   \item{quad.fit.max}{Fit threshold used to identify quadrangles.}
   \item{poly.cont.min}{The minimum allowed aspect ratio of the polygon contours, used as a threshold in identifying quadrangles.}
   \item{poly.cont.max}{The maximum allowed aspect ratio of the polygon contours, used as a threshold in identifying quadrangles.}
