@@ -98,10 +98,10 @@ process_digitize_images_input <- function(image.file = image.file,
 		}
 
 		# CREATE MATCHING FILES FOR SHAPE DATA
-		if(!is.null(shapes.file)) shapes_fpaths <- gsub('.[a-zA-Z]+$', '.txt', images_fpaths)
-		if(!is.null(landmarks.file)) landmarks_fpaths <- gsub('.[a-zA-Z]+$', '.txt', images_fpaths)
-		if(!is.null(control.points.file)) control_points_fpaths <- gsub('.[a-zA-Z]+$', '.txt', images_fpaths)
-		if(!is.null(curve.points.file)) curve_points_fpaths <- gsub('.[a-zA-Z]+$', '.txt', images_fpaths)
+		if(!is.null(shapes.file)) shapes_fpaths <- gsub('[.][a-zA-Z]+$', '.txt', images_fpaths)
+		if(!is.null(landmarks.file)) landmarks_fpaths <- gsub('[.][a-zA-Z]+$', '.txt', images_fpaths)
+		if(!is.null(control.points.file)) control_points_fpaths <- gsub('[.][a-zA-Z]+$', '.txt', images_fpaths)
+		if(!is.null(curve.points.file)) curve_points_fpaths <- gsub('[.][a-zA-Z]+$', '.txt', images_fpaths)
 
 		# ADD DIRECTORY PREFIX
 		for(i in 1:ncol(images_fpaths)) images_fpaths[, i] <- paste0(image.file, '/', images_fpaths[, i])
@@ -149,6 +149,21 @@ process_digitize_images_input <- function(image.file = image.file,
 		landmarks_fpaths <- landmarks.file
 		control_points_fpaths <- control.points.file
 		curve_points_fpaths <- curve.points.file
+	}
+	
+	# MAKE SURE THAT NO IMAGES HAVE THE SAME NAME BUT DIFFERENT EXTENSION (FILE TYPE)
+	for(i in 1:ncol(images_fpaths)){
+		
+		# GET LIST OF FILENAMES
+		str_split <- strsplit(images_fpaths[, i], '/')
+		
+		# GET IMAGE NAMES
+		image_fnames <- rep(NA, nrow(images_fpaths))
+		for(j in 1:length(str_split)) image_fnames[j] <- gsub('[.][A-Z]+$', '', str_split[[j]][length(str_split[[j]])], ignore.case=TRUE)
+
+		# CHECK FOR DUPLICATES (WITHOUT FILE EXTENSION)
+		if(length(image_fnames) != length(unique(image_fnames)))
+			stop("Two or more images have the same name but a different file extension (e.g. image type). Please make sure that all image names are unique (excluding the file extension) so that there will be a one-to-one correspondence between the shape and image files.")
 	}
 	
 	# MAKE SURE THAT NUMBER OF ELEMENTS MATCHES ACROSS IMAGE AND SHAPE FILES
