@@ -37,6 +37,11 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 		}
 	}
 
+	# GIVE ERROR IF IMAGE HAS EXTENSION OTHER THAN JPG/JPEG
+	if(!is.matrix(image.file) && length(image.file) == 1){
+		if(!grepl(pattern='.jpg$|.jpeg$', x=image.file, ignore.case=TRUE)) stop("Checkerboard detection is currently only available for jpeg images.")
+	}
+
 	# CREATE VECTOR OR MATRIX OF INPUT IMAGE FILES
 	image_input <- image.file
 	#is_image <- grepl(pattern='.jpg$|.jpeg$|.tiff$|.png$|.raw$|.gif$|.bmp$', x=c(image.file), ignore.case=TRUE)
@@ -126,7 +131,8 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 			success <- FALSE
 
 			# CHECK THAT IMAGE FILE EXISTS
-			if(print.progress) cat(paste0("Loading image ", image_num, " (", image_name, ")...\n"))
+			
+			if(print.progress) cat(paste0("Loading image ", image_num, " (", gsub('%20', ' ', image_name), ")...\n"))
 			if(!file.exists(image.file[image_row, image_col])){
 				if(print.progress) cat(paste0(image.file[image_row, image_col], " not found.\n"))
 				next
