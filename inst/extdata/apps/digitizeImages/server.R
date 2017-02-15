@@ -204,7 +204,7 @@ shinyServer(function(input, output) {
 			if(print.progress) cat(paste0('Finding checkerboard corners\n'))
 
 			# GET PATH TO IMAGE FILE
-			img_fpath <- paste0(getwd(), '/www/img/', json_list$image_fname)
+			img_fpath <- paste0(getwd(), '/www/img/', gsub(' ', '%20', json_list$image_fname))
 
 			# FIND CHECKERBOARD CORNERS
 			corners <- findCheckerboardCorners(img_fpath, nx=json_list$checkerboard_nx, ny=json_list$checkerboard_ny)
