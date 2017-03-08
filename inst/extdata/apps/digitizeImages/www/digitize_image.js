@@ -2280,6 +2280,7 @@ function moveToTarget(xi,yi,xf,yf,sw,sh,rnd){
 }
 
 function move_photograph_x(d){
+
 	var new_x = photograph.x + d;
 	var new_values = correctImagePosition(new_x,photograph.y,photograph.w,photograph.h,photograph.ow,photograph.oh);
 	photograph.x = new_values.x;
@@ -2395,7 +2396,10 @@ function onLoadFunctions(evt){
 
 	marker_selected = 0;
 	
-	selectObject('landmark', 1)
+	// If there are landmarks, select first landmark
+	if(rulers.length > 0) selectObject('ruler', 0)
+	if(curves.length > 0) selectObject('curve start', 0, 0)
+	if(landmarks.length > 0) selectObject('landmark', 0)
 }
 
 function onWindowResize(){
