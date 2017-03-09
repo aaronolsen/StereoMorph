@@ -1,4 +1,4 @@
-extractFrames <- function(file, save.to = NULL, frames = NULL, name = '', ext = 'jpeg', 
+extractFrames <- function(file = NULL, save.to = NULL, frames = NULL, name = '', ext = 'jpeg', 
 	qscale = 2, frame.start = 0, video.i = NULL, warn.min = 100){
 
 	# Set frame start point (first change of frame)
@@ -9,15 +9,61 @@ extractFrames <- function(file, save.to = NULL, frames = NULL, name = '', ext = 
 	#	May need to add an additional step that detects the first time point at which the frame changes
 
 	# Check that file exists
-	if(!file.exists(file)) stop(paste0("File '", file, "' not found."))
+	if(is.null(file)){
 
-	if(!is.null(save.to)){
-		# Check that save.to exists
-		if(!file.exists(save.to)) stop(paste0("save.to filepath '", save.to, "' not found."))
+		file_check <- FALSE
 
-		# Add slash at end if not present
-		if(!grepl('[/]$', save.to)) save.to <- paste0(save.to, '/')
+		# Check that file exists
+		while(!file_check){
+
+			file_check <- TRUE
+
+			# Prompt for save to location
+			file_response <- readline(prompt=paste0("\n\tWhat video would you like to extract frames from? "))
+
+			# Check that save.to exists
+			if(file_response != '' && !file.exists(file_response)){
+				file_check <- FALSE
+				cat(paste0("file '", file_response, "' not found."))
+			}else{
+				file <- file_response
+			}
+		}
+
+	}else{
+
+		if(!file.exists(file)) stop(paste0("File '", file, "' not found."))
 	}
+
+	if(is.null(save.to)){
+
+		save_to_check <- FALSE
+
+		# Check that save to exists
+		while(!save_to_check){
+
+			save_to_check <- TRUE
+
+			# Prompt for save to location
+			saveto_response <- readline(prompt=paste0("\n\tWhere would you like to save the extracted frames (simply press enter to save to current working directory)? "))
+
+			# Check that save.to exists
+			if(saveto_response != '' && !file.exists(saveto_response)){
+				save_to_check <- FALSE
+				cat(paste0("save.to filepath '", saveto_response, "' not found."))
+			}else{
+				save.to <- saveto_response
+			}
+		}
+
+	}else{
+
+		# Check that save.to exists
+		if(save.to != '' && !file.exists(save.to)) stop(paste0("save.to filepath '", save.to, "' not found."))
+	}
+
+	# Add slash at end if not present
+	if(save.to != '' && !grepl('[/]$', save.to)) save.to <- paste0(save.to, '/')
 
 	if(is.null(video.i)){
 
@@ -67,7 +113,7 @@ extractFrames <- function(file, save.to = NULL, frames = NULL, name = '', ext = 
 				frames_response <- readline(prompt=paste0("\tExample inputs:", examples, "\n\tWhich frames would you like to extract? "))
 			}
 
-			frames <- eval(parse(text=frames_response))
+			frames <- round(eval(parse(text=frames_response)))
 			frames_check <- FALSE
 		}
 
