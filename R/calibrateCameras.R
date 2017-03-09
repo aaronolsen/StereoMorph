@@ -1,5 +1,5 @@
 calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
-	print.progress = TRUE, flip.view = FALSE, verify.dir = NULL, 
+	print.progress = TRUE, flip.view = FALSE, verify.dir = NULL, error.dir = NULL,
 	min.views = 'max', exec.dir = NULL, undistort = FALSE, num.aspects.read = 'auto', 
 	num.sample.est = 'auto', num.sample.sets = 'auto', num.aspects.sample = 'auto', 
 	max.sample.optim = 30, nlm.calls.max = 20, fit.min.break = 1, objective.min = 1, 
@@ -708,25 +708,6 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 	# CHECK THAT CORNERS WERE FOUND IN AT LEAST 3 ASPECTS
 	if(cal_views_found_num < 2 && !unify_view_pairs) stop(paste0("Corners were only detected in 1 or fewer aspects. At least 2 aspects are required for calibration."))
 
-	# CREATE ACCURACY CHECK FOLDERS
-	if(num.sample.est != 'auto'){
-
-		# CREATE ERROR TESTS FOLDER
-		if(!file.exists(paste0(calib_dir, 'Error tests'))) dir.create(paste0(calib_dir, 'Error tests'))
-
-		# FIND COMBINATIONS OF ALL VIEWS
-		view_combo_sub_dir <- NULL
-		if(num_views > 2){
-
-			# CREATE SUB-FOLDER NAMES
-			view_combo_sub_dir <- rep(NA, length(view_combos))
-			for(i in 1:length(view_combos)) view_combo_sub_dir[i] <- paste(img_sub_dir[view_combos[[i]]], collapse=', ')
-
-			# CREATE SUB-FOLDERS IF THEY DO NOT EXIST
-			for(dir_name in view_combo_sub_dir) if(!file.exists(paste0(calib_dir, 'Error tests/', dir_name))) dir.create(paste0(calib_dir, 'Error tests/', dir_name))
-		}
-	}
-	
 	# NUMBER OF COEFFICIENT ESTIMATION RUNS
 	num_coeff_est_runs <- 1
 	if(unify_view_pairs) num_coeff_est_runs <- 2
@@ -906,6 +887,21 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 
 	############################## TEST CALIBRATION ACCURACY #############################
 
+	# CREATE ERROR FOLDER
+	if(!is.null(error.dir) && !file.exists(error.dir)) dir.create(error.dir)
+
+	# FIND COMBINATIONS OF ALL VIEWS
+	view_combo_sub_dir <- NULL
+	if(num_views > 2){
+
+		# CREATE SUB-FOLDER NAMES
+		view_combo_sub_dir <- rep(NA, length(view_combos))
+		for(i in 1:length(view_combos)) view_combo_sub_dir[i] <- paste(img_sub_dir[view_combos[[i]]], collapse=', ')
+
+		# CREATE SUB-FOLDERS IF THEY DO NOT EXIST
+		for(dir_name in view_combo_sub_dir) if(!file.exists(paste0(error.dir, '/', dir_name))) dir.create(paste0(error.dir, '/', dir_name))
+	}
+
 	# DEFAULT NULL
 	cal_corners_test <- NULL
 	if(is.null(cal_corners_trim_optim)){
@@ -927,7 +923,7 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 		}
 
 	}else{
-	
+
 		# SET OPTIM SET FOR TESTING ACCURACY
 		cal_corners_test <- cal_corners_trim_optim
 
@@ -941,10 +937,14 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 		for(i in 1:length(view_combos)){
 
 			# SET SAVE AS FOLDER
-			if(length(view_combos) == 1){
-				save_to <- paste0(calib_dir, 'Error tests')
+			if(is.null(error.dir)){
+				save_to <- NULL
 			}else{
-				save_to <- paste0(calib_dir, 'Error tests/', view_combo_sub_dir[i])
+				if(length(view_combos) == 1){
+					save_to <- error.dir
+				}else{
+					save_to <- paste0(error.dir, '/', view_combo_sub_dir[i])
+				}
 			}
 
 			# FIND NON-NA ASPECTS AMONG VIEWS
@@ -1009,19 +1009,19 @@ print.calibrateCameras <- function(x, ...){
 }
 
 
-						## NOTE ON FFMPEG VS OPENCV IN EXTRACTING FRAMES - CORRESPONDENCE DEPENDS ON VIDEO FORMAT
-						# For .mov (from GoPro)
-						# 	The first ffmpeg frame (0 after -ss) is not the same as the first frame using the opencv 
-						#	frame extraction. When given 0 as index, opencv throws an error. The first opencv frame (at index 1)
-						#	corresponds to the second ffmpeg frame. So the "first" frame of these videos seems 
-						#	inaccessible using opencv.
-						# For .avi files (from canon camera)
-						#	For this video opencv does allow a 0 index. The 0 and 1 index opencv frames are identical.
-						#	They appear to be the second frame of the video. The ffmpeg 0 frame appears to be the first
-						#	frame of the video.
-						# For .avi files from the photron cameras (high-speed)
-						#	It seems ffmpeg cannot read these files. 0 index after -ss gives a black frame. This may have something 
-						#	to do with these videos being 'rawvideo' rather than mpeg. opencv gives the same frame for 0 and 1 as index.
-						#command <- paste0('./', gsub(' ', '\\\\ ', '../build/'), 'extract_video_frames ', 
-						#	gsub(' ', '\\\\ ', img.dir), '/', gsub(' ', '\\\\ ', vid_fnames[i]), ' ', gsub(' ', '\\\\ ', verify.dir), '/',
-						#	gsub(' ', '\\\\ ', img_sub_dir[i]), "/", ' ', frame_seq[j]+1, ' ', frame_seq[j]+1)
+## NOTE ON FFMPEG VS OPENCV IN EXTRACTING FRAMES - CORRESPONDENCE DEPENDS ON VIDEO FORMAT
+# For .mov (from GoPro)
+# 	The first ffmpeg frame (0 after -ss) is not the same as the first frame using the opencv 
+#	frame extraction. When given 0 as index, opencv throws an error. The first opencv frame (at index 1)
+#	corresponds to the second ffmpeg frame. So the "first" frame of these videos seems 
+#	inaccessible using opencv.
+# For .avi files (from canon camera)
+#	For this video opencv does allow a 0 index. The 0 and 1 index opencv frames are identical.
+#	They appear to be the second frame of the video. The ffmpeg 0 frame appears to be the first
+#	frame of the video.
+# For .avi files from the photron cameras (high-speed)
+#	It seems ffmpeg cannot read these files. 0 index after -ss gives a black frame. This may have something 
+#	to do with these videos being 'rawvideo' rather than mpeg. opencv gives the same frame for 0 and 1 as index.
+#command <- paste0('./', gsub(' ', '\\\\ ', '../build/'), 'extract_video_frames ', 
+#	gsub(' ', '\\\\ ', img.dir), '/', gsub(' ', '\\\\ ', vid_fnames[i]), ' ', gsub(' ', '\\\\ ', verify.dir), '/',
+#	gsub(' ', '\\\\ ', img_sub_dir[i]), "/", ' ', frame_seq[j]+1, ' ', frame_seq[j]+1)
