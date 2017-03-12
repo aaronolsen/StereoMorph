@@ -20,6 +20,14 @@ alignShapesToMidline <- function(shapes, file = NULL, print.progress = FALSE, ..
 
 		# SET OUTPUT FILE PATHS		
 		if(grepl('[.]txt$', file[1], ignore.case=TRUE)){
+
+			# REMOVE FILE TO GET DIRECTORY
+			file_dir <- strsplit(file[1], '/')[[1]]
+			file_dir <- paste(file_dir[1:(length(file_dir)-1)], collapse='/')
+
+			# CREATE DIRECTORY IF IT DOESN'T ALREADY EXIST
+			if(!file.exists(file_dir)) dir.create(file_dir)
+
 			shapes_save_fpaths <- file
 		}else{
 			if(!file.exists(file)) dir.create(file)
