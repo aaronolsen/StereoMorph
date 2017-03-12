@@ -1,8 +1,5 @@
-testCalibration <- function(img.dir, cal.file, corner.dir, sq.size, nx, ny, error.dir = NULL,
-	verify.dir = NULL, print.progress = TRUE, plot.dir = NULL){
-	
-	# IF PLOT DIR IS USED (OLD VERSION) SAVE TO ERROR DIRECTORY
-	if(!is.null(plot.dir)) error.dir <- plot.dir
+testCalibration <- function(img.dir, cal.file, corner.dir, sq.size, nx, ny, plot.dir = NULL,
+	verify.dir = NULL, print.progress = TRUE){
 
 	# READ CALIBRATION FILE
 	cal.list <- XML4R2list(file=cal.file)$calibration
@@ -26,8 +23,8 @@ testCalibration <- function(img.dir, cal.file, corner.dir, sq.size, nx, ny, erro
 	# GET NUMBER OF SPACES TO ALIGN RIGHT OF SUB DIRECTORY NAMES
 	img_sub_dir_salign <- (1 + max(nchar(img_sub_dir))) - nchar(img_sub_dir)
 
-	# CHECK IF ERROR.DIR EXISTS
-	if(!is.null(error.dir)) if(!file.exists(error.dir)) dir.create(path=error.dir)
+	# CHECK IF PLOT.DIR EXISTS
+	if(!is.null(plot.dir)) if(!file.exists(plot.dir)) dir.create(path=plot.dir)
 
 	# CHECK IF CORNER FOLDERS EXIST
 	if(!file.exists(corner.dir)) dir.create(path=corner.dir)
@@ -213,7 +210,7 @@ testCalibration <- function(img.dir, cal.file, corner.dir, sq.size, nx, ny, erro
 
 	# CREATE ERROR PLOTS
 	dlt_test <- createErrorPlots(cal.coeff=cal_coeff, corners=cal_corners, nx=nx, sq.size.num=sq.size.num, 
-		sq.size.units=sq.size.units, file=error.dir)
+		sq.size.units=sq.size.units, file=plot.dir)
 
 	# PRINT ERROR SUMMARY
 	if(print.progress) print(summary(dlt_test, print.tab='\t'))

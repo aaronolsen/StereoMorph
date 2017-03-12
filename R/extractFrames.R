@@ -1,4 +1,4 @@
-extractFrames <- function(file = NULL, save.to = NULL, frames = NULL, names = NULL, ext = 'jpeg', 
+extractFrames <- function(file = NULL, save.to = NULL, frames = NULL, name = '', ext = 'jpeg', 
 	qscale = 2, frame.start = 0, video.i = NULL, warn.min = 100){
 
 	# Set frame start point (first change of frame)
@@ -133,17 +133,8 @@ extractFrames <- function(file = NULL, save.to = NULL, frames = NULL, names = NU
 		}
 	}
 
-	if(is.null(names)){
-		# Use frame numbers for names
-		frame_format <- formatC(frames, width=max(6, nchar(max(frames))+1), format="d", flag="0")
-	}else{
-	
-		# Check that length of input names matches number of frames
-		if(length(frames) != length(names)) stop(paste0("The length of the input filenames (", length(names), ") must match the number of frames to extract (", length(frames), ")."))
-		
-		# Assign input names
-		frame_format <- names
-	}
+	# Format frame numbers
+	frame_format <- paste0(name, formatC(frames, width=max(6, nchar(max(frames))+1), format="d", flag="0"))
 
 	# Get time points corresponding to frame boundaries (right before next frame) in sec
 	frame_t_bound <- floor((1000 / video_i$fps)*(frames-1))
