@@ -1,0 +1,35 @@
+<shapes type=list>
+	<square.size type=vector names=FALSE length=1 as.numeric=TRUE >0.685793366294231</square.size>
+	<square.pixel type=vector names=FALSE length=1 as.numeric=TRUE >81.6139127847201</square.pixel>
+	<checkerboard.ny type=vector names=FALSE length=1 as.numeric=TRUE >3</checkerboard.ny>
+	<checkerboard.nx type=vector names=FALSE length=1 as.numeric=TRUE >6</checkerboard.nx>
+	<ruler.pixel type=vector names=FALSE length=1 as.numeric=TRUE >952.052519559714</ruler.pixel>
+	<ruler.interval type=vector names=FALSE length=1 as.numeric=TRUE >8</ruler.interval>
+	<scaling.units type=vector names=FALSE length=1 as.numeric=FALSE >cm</scaling.units>
+	<scaling type=vector names=FALSE length=1 as.numeric=TRUE >0.00840289777679458</scaling>
+	<landmarks.pixel type=matrix rownames=TRUE colnames=FALSE nrow=8 ncol=2 as.numeric=TRUE >
+		Handle_Cup_Out_Top	1041	324
+		Handle_Cup_In_Top	1033	531
+		Handle_Cup_Out_Bottom	1027	1088
+		Handle_Cup_In_Bottom	1028	890
+		Cup_Rim_Handle	1053	182
+		Cup_Rim_Opposite	1970	196
+		Cup_Base_Handle	1027	1209
+		Cup_Base_Opposite	1943	1248
+	</landmarks.pixel>
+	<landmarks.scaled type=matrix rownames=TRUE colnames=FALSE nrow=8 ncol=2 as.numeric=TRUE >
+		Handle_Cup_Out_Top	8.74741658564315	-2.72253887968144
+		Handle_Cup_In_Top	8.6801934034288	-4.46193871947792
+		Handle_Cup_Out_Bottom	8.62977601676803	-9.1423527811525
+		Handle_Cup_In_Bottom	8.63817891454483	-7.47857902134717
+		Cup_Rim_Handle	8.84825135896469	-1.52932739537661
+		Cup_Rim_Opposite	16.5537086202853	-1.64696796425174
+		Cup_Base_Handle	8.62977601676803	-10.1591034121446
+		Cup_Base_Opposite	16.3268303803119	-10.4868164254396
+	</landmarks.scaled>
+	<ruler.points type=matrix rownames=TRUE colnames=FALSE nrow=2 ncol=2 as.numeric=TRUE >
+		Ruler point 1	226	1143
+		Ruler point 2	216	191
+	</ruler.points>
+</shapes>
+

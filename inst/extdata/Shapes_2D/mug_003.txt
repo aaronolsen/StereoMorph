@@ -1,0 +1,54 @@
+<shapes>
+	<image.name>mug_003.jpg</image.name>
+	<image.id>mug_003</image.id>
+	<class>shapes</class>
+	<scaling asnumeric=TRUE >0.00924856342084076</scaling>
+	<scaling.units>cm</scaling.units>
+	<checkerboard.nx asnumeric=TRUE >6</checkerboard.nx>
+	<checkerboard.ny asnumeric=TRUE >3</checkerboard.ny>
+	<square.pixel asnumeric=TRUE >91.5817907558882</square.pixel>
+	<square.size asnumeric=TRUE >0.847</square.size>
+
+	<landmarks.pixel type=matrix rownames=TRUE as.numeric=TRUE>
+		Handle_Cup_Out_Top	1246	376
+		Handle_Cup_In_Top	1253	600
+		Handle_Cup_Out_Bottom	1251	935
+		Handle_Cup_In_Bottom	1251	768
+		Cup_Rim_Handle	1245	129
+		Cup_Rim_Opposite	2064	141
+		Cup_Base_Handle	1257	1237
+		Cup_Base_Opposite	1978	1263
+	</landmarks.pixel>
+
+	<landmarks.scaled type=matrix rownames=TRUE as.numeric=TRUE>
+		Handle_Cup_Out_Top	11.5237100223676	-3.47745984623612
+		Handle_Cup_In_Top	11.5884499663135	-5.54913805250445
+		Handle_Cup_Out_Bottom	11.5699528394718	-8.64740679848611
+		Handle_Cup_In_Bottom	11.5699528394718	-7.1028967072057
+		Cup_Rim_Handle	11.5144614589467	-1.19306468128846
+		Cup_Rim_Opposite	19.0890349006153	-1.30404744233855
+		Cup_Base_Handle	11.6254442199968	-11.44047295158
+		Cup_Base_Opposite	18.293658446423	-11.6809356005219
+	</landmarks.scaled>
+
+	<checker.pixel type=matrix rownames=FALSE as.numeric=TRUE>
+		246.590545386341	466.821612034084
+		249.579528038849	559.625742315925
+		252.418901283128	651.945434832427
+		255.047663383573	743.475078394864
+		258.260729873606	834.31819290236
+		260.944374250386	924.162355607358
+		341.182762538275	465.81035555466
+		343.715428133459	558.655549103333
+		346.268637996007	650.933062425205
+		348.703028665803	742.331222446839
+		351.042162441265	833.317094442284
+		353.452649792745	923.279605970811
+		434.976241470851	465.565227462557
+		437.04866855931	558.012855832628
+		439.337648386399	650.236707579377
+		441.555678570315	741.270961379594
+		443.640647841767	832.367064060277
+		445.622131793557	922.129556567131
+	</checker.pixel>
+</shapes>

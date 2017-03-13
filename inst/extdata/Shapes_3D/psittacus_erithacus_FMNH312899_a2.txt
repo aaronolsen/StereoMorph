@@ -1,0 +1,14 @@
+<shapes type=list>
+	<landmarks type=matrix rownames=TRUE colnames=FALSE nrow=7 ncol=3 as.numeric=TRUE >
+		jugal_upperbeak_R	-27.7249847962648	0.786882052273661	8.69128215431431
+		nasalfrontalhinge_cranium_R	-33.9447619999184	8.272632589772	7.10369987477196
+		postorbital_process_dist_inf_R	-45.9720584039854	-11.9659111453709	16.420662372146
+		preorbital_process_distal_R	-38.063522141362	-5.78167347042793	14.776106193621
+		quadrate_cranium_lc_R	-56.1331614083873	-12.7292499682623	15.5024886086341
+		quadrate_jugal_R	-50.1338237286824	-19.1246729960883	20.9213213501153
+		upperbeak_tip	-0.404955676760213	-20.4285209030949	5.66513240683608
+	</landmarks>
+	<curves type=list>
+	</curves>
+</shapes>
+

@@ -1,0 +1,51 @@
+<shapes type=list>
+	<square.size type=vector names=FALSE length=1 as.numeric=TRUE >0.685793366294231</square.size>
+	<square.pixel type=vector names=FALSE length=1 as.numeric=TRUE >81.6139127847201</square.pixel>
+	<checkerboard.ny type=vector names=FALSE length=1 as.numeric=TRUE >3</checkerboard.ny>
+	<checkerboard.nx type=vector names=FALSE length=1 as.numeric=TRUE >6</checkerboard.nx>
+	<ruler.pixel type=vector names=FALSE length=1 as.numeric=TRUE >952.052519559714</ruler.pixel>
+	<ruler.interval type=vector names=FALSE length=1 as.numeric=TRUE >8</ruler.interval>
+	<scaling.units type=vector names=FALSE length=1 as.numeric=FALSE >cm</scaling.units>
+	<scaling type=vector names=FALSE length=1 as.numeric=TRUE >0.00840289777679458</scaling>
+	<landmarks.pixel type=matrix rownames=TRUE colnames=FALSE nrow=8 ncol=2 as.numeric=TRUE >
+		Handle_Cup_Out_Top	1136	303
+		Handle_Cup_In_Top	1146	474
+		Handle_Cup_Out_Bottom	1201	1185
+		Handle_Cup_In_Bottom	1187	1020
+		Cup_Rim_Handle	1132	115
+		Cup_Rim_Opposite	1929	106
+		Cup_Base_Handle	1212	1316
+		Cup_Base_Opposite	1829	1333
+	</landmarks.pixel>
+	<landmarks.scaled type=matrix rownames=TRUE colnames=FALSE nrow=8 ncol=2 as.numeric=TRUE >
+		Handle_Cup_Out_Top	9.54569187443864	-2.54607802636876
+		Handle_Cup_In_Top	9.62972085220659	-3.98297354620063
+		Handle_Cup_Out_Bottom	10.0918802299303	-9.95743386550158
+		Handle_Cup_In_Bottom	9.97423966105517	-8.57095573233047
+		Cup_Rim_Handle	9.51208028333147	-0.966333244331377
+		Cup_Rim_Opposite	16.2091898114367	-0.890707164340226
+		Cup_Base_Handle	10.184312105475	-11.0582134742617
+		Cup_Base_Opposite	15.3689000337573	-11.2010627364672
+	</landmarks.scaled>
+	<checker.pixel type=matrix rownames=FALSE colnames=FALSE nrow=18 ncol=2 as.numeric=TRUE >
+		268.463533315386	630.531749758969
+		272.012245244951	712.891648278289
+		275.416001205445	794.817639429248
+		278.668359406476	876.22339523871
+		281.931426445383	957.548997061789
+		285.379084397354	1038.07675729527
+		351.749111421742	628.480275626554
+		354.858503141036	710.761392527101
+		358.127565917692	792.767564350364
+		361.27237715191	874.297360680845
+		364.212536385525	955.489107751852
+		367.234033213719	1036.38194242877
+		434.251570336061	626.774628369659
+		437.062767442811	708.919170534581
+		440.312039582307	790.978367546403
+		443.251591311598	872.380072995693
+		446.056111376286	953.596656668641
+		449.008433858952	1034.25213376951
+	</checker.pixel>
+</shapes>
+
