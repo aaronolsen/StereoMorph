@@ -8,12 +8,12 @@ This function uses a checkerboard at different positions and angles within a ste
 \usage{
 calibrateCameras(img.dir, sq.size, nx, ny, cal.file, corner.dir,
                  print.progress = TRUE, flip.view = FALSE, verify.dir = NULL,
-                 min.views = 'max', exec.dir = '', undistort = FALSE, 
-                 num.aspects.read = 'auto', num.sample.est = 'auto', 
-                 num.sample.sets = 'auto', num.aspects.sample = 'auto', 
-                 max.sample.optim = 30, nlm.calls.max = 20, fit.min.break = 1,
-                 objective.min = 1, objective.min.break = 5, with.circles = FALSE, 
-                 sample.est = NULL, ...)
+                 error.dir = NULL, min.views = 'max', exec.dir = NULL, 
+                 undistort = FALSE, num.aspects.read = 'auto', 
+                 num.sample.est = 'auto', num.sample.sets = 'auto', 
+                 num.aspects.sample = 'auto', max.sample.optim = 30, nlm.calls.max = 20, 
+                 fit.min.break = 1, objective.min = 1, objective.min.break = 5, 
+                 with.circles = FALSE, sample.est = NULL, ...)
 }
 \arguments{
   \item{img.dir}{folder containing images of the checkerboard pattern, separated into separate folders by view.}
@@ -25,6 +25,7 @@ calibrateCameras(img.dir, sq.size, nx, ny, cal.file, corner.dir,
   \item{print.progress}{logical indicating whether function processes should be printed to the console.}
   \item{flip.view}{logical indicating whether one camera view is upside-down relative to the other.}
   \item{verify.dir}{folder where the images of the checkerboards with detected corners overlaid will be written (if it does not already exist one will be created).}
+  \item{error.dir}{folder where the error diagnostic plots will be saved (if it does not already exist one will be created).}
   \item{min.views}{integer indicating the minimum views in which corners must be detected in order to use in coefficient estimation. If set to 'max' (default) this will be equal to the number of input views.}
   \item{exec.dir}{file path to folder containing external executables for reading video files (still under development).}
   \item{undistort}{logical indicating whether to estimate lens distortion correction coefficients (still under development).}

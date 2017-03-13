@@ -18,7 +18,6 @@
 \alias{estimateDistortion}
 \alias{estimateUndistortion}
 \alias{estimateDLTCoefficients}
-\alias{extractFrames}
 \alias{findBoundaryPoints}
 \alias{findCornerSubPix}
 \alias{findEpipolarTangencyAngles}
@@ -44,15 +43,25 @@
 \alias{removeOutlierCorners}
 \alias{rgbToGray}
 \alias{rotationMatrixZYX_SM}
+\alias{StereoMorph_dilateImage}
+\alias{StereoMorph_drawRectangle}
+\alias{StereoMorph_equalizeImageHist}
+\alias{StereoMorph_erodeImage}
+\alias{StereoMorph_findBoundaryPoints}
+\alias{StereoMorph_findCornerSubPix}
+\alias{StereoMorph_generateQuads}
+\alias{StereoMorph_intCornersFromQuads}
+\alias{StereoMorph_meanBlurImage}
+\alias{StereoMorph_orderCorners}
+\alias{StereoMorph_rgbToGray}
+\alias{StereoMorph_thresholdImageMatrix}
+\alias{testCalibration}
+\alias{thresholdImageMatrix}
+\alias{tMatrixDC_SM}
 \alias{undistort}
 \alias{undistortionError}
 \alias{undistortShapes}
 \alias{uvector_SM}
-\alias{testCalibration}
-\alias{thresholdImageMatrix}
-\alias{tMatrixDC_SM}
-\alias{TPSToShapes}
-\alias{writeLMToTPS}
 \alias{XML4R2list}
 \alias{XML4R2listLines}
 
@@ -65,8 +74,8 @@
 \tabular{ll}{
 Package: \tab StereoMorph\cr
 Type: \tab Package\cr
-Version: \tab 1.5.2\cr
-Date: \tab 2016-06-04\cr
+Version: \tab 1.6.1\cr
+Date: \tab 2017-03-11\cr
 License: \tab GPL-2\cr
 }
 }
