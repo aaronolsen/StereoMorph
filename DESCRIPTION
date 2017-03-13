@@ -1,5 +1,5 @@
 Package: StereoMorph
-Date: 2017-02-12
+Date: 2017-03-11
 Title: Stereo Camera Calibration and Reconstruction
 Description: Functions for the collection of 3D points and curves using a stereo camera setup.
 Version: 1.6.1
