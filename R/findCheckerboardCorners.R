@@ -37,11 +37,6 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 		}
 	}
 
-	# GIVE ERROR IF IMAGE HAS EXTENSION OTHER THAN JPG/JPEG
-	if(!is.matrix(image.file) && length(image.file) == 1){
-		if(!grepl(pattern='.jpg$|.jpeg$', x=image.file, ignore.case=TRUE)) stop("Checkerboard detection is currently only available for jpeg images.")
-	}
-
 	# CREATE VECTOR OR MATRIX OF INPUT IMAGE FILES
 	image_input <- image.file
 	#is_image <- grepl(pattern='.jpg$|.jpeg$|.tiff$|.png$|.raw$|.gif$|.bmp$', x=c(image.file), ignore.case=TRUE)
@@ -66,6 +61,11 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 		}
 	}else if(sum(is_image) == length(image_input)){
 	}else{stop("'image.file' input is a mix of folders and image files. Only input of one type allowed.")}
+
+	# GIVE ERROR IF IMAGE HAS EXTENSION OTHER THAN JPG/JPEG
+	if(!is.matrix(image.file)){
+		if(!grepl(pattern='[.]jpg$|[.]jpeg$', x=image.file[1], ignore.case=TRUE)) stop("Checkerboard detection is currently only available for jpeg images.")
+	}
 
 	# IF ANY OF THE OUTPUT PATHS ARE DIRECTORIES, AUTOMATICALLY ASSIGN NAMES
 	if(!is.null(corner.file)){
