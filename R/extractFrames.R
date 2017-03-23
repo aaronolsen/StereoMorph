@@ -145,7 +145,7 @@ extractFrames <- function(file = NULL, save.to = NULL, frames = NULL, names = NU
 		frame_format <- names
 	}
 
-	# Get time points corresponding to frame boundaries (right before next frame) in sec
+	# Get time points corresponding to frame boundaries (right before next frame) in msec
 	frame_t_bound <- floor((1000 / video_i$fps)*(frames-1))
 
 	# Add half of duration between frames to ensure that extraction falls on next frame

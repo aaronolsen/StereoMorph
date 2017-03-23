@@ -16,7 +16,7 @@ extractFrames(file = NULL, save.to = NULL, frames = NULL, names = NULL,
   \item{names}{Names to be given to the extracted frames. If \code{NULL} the function will automatically name them with the corresponding frame number, preceded by enough zeros to maintain a constant filename width.}
   \item{ext}{The image type/extension to be added to each extract frame.}
   \item{qscale}{Integer indicating the image quality of the extracted frames. This is an input parameter passed direclty to ffmpeg.}
-  \item{frame.start}{The frame immediately before the first frame change.}
+  \item{frame.start}{The time (in msec) corresponding to the frame immediately before the first frame change.}
   \item{video.i}{Video metadata passed to the function. This parameter is only intended for internal use.}
   \item{warn.min}{The minimum number of extracted frames for which the user is prompted and has to respond 'y' prior to frame extraction. This is intended to prevent the user from mistakenly extracting thousands of frames.}
 }
