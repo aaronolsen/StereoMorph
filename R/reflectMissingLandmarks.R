@@ -77,7 +77,7 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 	# SORT ROWNAMES TO MAKE SURE THAT ROWNAMES CORRESPOND
 	lm_matrix_r <- lm_matrix_r[sort(rownames(lm_matrix_r)), ]
 
-	# USE PROCRUSTES LEAST SQUARES TO ALIGN THE TWO MATRICES
+	# USE LEAST SQUARES TO ALIGN THE TWO MATRICES
 	lm_matrix_a <- findOptimalPointAlignment(lm_matrix_r, lm_matrix)
 
 	# FILL NA VALUES FROM OTHER MATRIX
@@ -94,7 +94,7 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 		lm_matrix_symm <- lm_matrix_fill
 	}
 
-	# FIND PROCRUSTES ALIGNMENT ERRORS
+	# FIND ALIGNMENT ERRORS
 	align_error <- rep(NA, 0)
 	align_names <- rep(NA, 0)
 
