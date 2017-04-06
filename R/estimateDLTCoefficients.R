@@ -1,6 +1,5 @@
 estimateDLTCoefficients <- function(cal.list, sample.est, num.sample.est, cal_corners, aspect_non_na, min_views, 
-	cal_views_found_num, estimate_cal_coeffs, 
-	num.sample.sets, num.aspects.sample, max.sample.optim, num_views, 
+	cal_views_found_num, estimate_cal_coeffs, num.sample.sets, num.aspects.sample, max.sample.optim, num_views, 
 	img_sub_dir, non_na_by_view, print.progress, nx, ny, sq.size.num, fit.min.break, objective.min, 
 	objective.min.break, nlm.calls.max, img_sub_dir_salign, unify_view_pairs, unify_sub, ...){
 
