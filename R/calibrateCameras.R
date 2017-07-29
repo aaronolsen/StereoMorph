@@ -467,7 +467,7 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 						gsub(' ', '\\\\ ', verify.dir), '/', gsub(' ', '\\\\ ', img_sub_dir[i]), ' ', 
 						nx, ' ', ny, ' ', num.aspects.read, ' ', num.aspects.read+80, ' ', 
 						min_nframes, ' 0 ', as.numeric(with.circles), ' ', input_video)
-				
+
 					# CALL COMMAND
 					#cat('\n');cat(command, '\n')
 					system(command=command)
@@ -887,9 +887,6 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 
 	############################## TEST CALIBRATION ACCURACY #############################
 
-	# CREATE ERROR FOLDER
-	if(!is.null(error.dir) && !file.exists(error.dir)) dir.create(error.dir)
-
 	# FIND COMBINATIONS OF ALL VIEWS
 	view_combo_sub_dir <- NULL
 	if(num_views > 2){
@@ -897,9 +894,17 @@ calibrateCameras <- function(img.dir, sq.size, nx, ny, cal.file, corner.dir,
 		# CREATE SUB-FOLDER NAMES
 		view_combo_sub_dir <- rep(NA, length(view_combos))
 		for(i in 1:length(view_combos)) view_combo_sub_dir[i] <- paste(img_sub_dir[view_combos[[i]]], collapse=', ')
+	}
+
+	# CREATE ERROR FOLDER
+	if(!is.null(error.dir)){
+
+		if(!file.exists(error.dir)) dir.create(error.dir)
 
 		# CREATE SUB-FOLDERS IF THEY DO NOT EXIST
-		for(dir_name in view_combo_sub_dir) if(!file.exists(paste0(error.dir, '/', dir_name))) dir.create(paste0(error.dir, '/', dir_name))
+		if(!is.null(view_combo_sub_dir)){
+			for(dir_name in view_combo_sub_dir) if(!file.exists(paste0(error.dir, '/', dir_name))) dir.create(paste0(error.dir, '/', dir_name))
+		}
 	}
 
 	# DEFAULT NULL
