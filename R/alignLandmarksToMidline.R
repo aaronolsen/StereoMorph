@@ -61,8 +61,8 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 	
 	if(average){
 	
-		# SET MIDLINE POINTS TO ZERO
-		lm.matrix[id_side == 'M', 3] <- 0
+		# SET MIDLINE NON-NA POINTS TO ZERO
+		lm.matrix[(!is.na(lm.matrix[, 1])) * (id_side == 'M') == 1, 3] <- 0
 		
 		lm_matrix_avg <- lm.matrix
 
