@@ -28,7 +28,7 @@ reconstructStereoSets <- function(shapes.2d, shapes.3d, cal.file,
 	# CREATE MATRIX WITH FILE IN EACH VIEW
 	files_in_view <- matrix(FALSE, nrow=length(files_2d_unique), ncol=length(shape_fdir), 
 		dimnames=list(files_2d_unique, shape_fdir))
-	
+
 	# FILL MATRIX
 	for(view in names(files_2d)) files_in_view[files_2d[[view]], view] <- TRUE
 
@@ -102,7 +102,7 @@ reconstructStereoSets <- function(shapes.2d, shapes.3d, cal.file,
 			}
 		}		
 	}
-	
+
 	if(print.progress) cat('reconstructStereoSets\n')
 
 	# IF NO FILES TO 
@@ -267,6 +267,7 @@ reconstructStereoSets <- function(shapes.2d, shapes.3d, cal.file,
 					for(k in 1:length(dlt_mcp$match.lm.list)) cp_array[, , k] <- dlt_mcp$match.lm.list[[k]]
 				
 					# RECONSTRUCT CURVE POINTS
+
 					dlt_recon <- dltReconstruct(cal_coeff[, in_views], cp_array)
 
 					if(print.progress){
@@ -276,11 +277,10 @@ reconstructStereoSets <- function(shapes.2d, shapes.3d, cal.file,
 
 					# GET CURVE POINTS
 					curve_points <- dlt_recon$coor.3d
-			
+
 					# FIND EVENLY SPACED POINTS ALONG CURVE IF SPECIFIED
 					if(!is.null(even.spacing)){
 						if(is.null(names(even.spacing))){
-
 							curve_points <- pointsAtEvenSpacing(x=curve_points, n=even.spacing[1])
 						}else{
 
@@ -331,6 +331,7 @@ reconstructStereoSets <- function(shapes.2d, shapes.3d, cal.file,
 
 			unify_lm <- NULL
 			
+
 			if(unify){
 
 				# GET ALL UNIQUE LANDMARK NAMES

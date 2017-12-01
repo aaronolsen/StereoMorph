@@ -10,7 +10,7 @@ pointsAtEvenSpacing <- function(x, n){
 	x <- x[rowSums(is.na(x)) == 0, ]
 
 	# ERROR IF THE NUMBER OF NEW POINTS EXCEEDS THE NUMBER OF INPUT POINTS
-	#if(n > nrow(x)) stop(paste0("The number of new points (", n, ") exceeds the number of non-NA input points (", nrow(x), ")."))
+	if(n > nrow(x)) warning(paste0("The number of new points (", n, ") exceeds the number of non-NA input points (", nrow(x), ")."))
 
 	# EMPTY MATRIX FOR NEW POINTS
 	r <- matrix(NA, nrow=n, ncol=ncol(x))
@@ -62,8 +62,8 @@ pointsAtEvenSpacing <- function(x, n){
 		r[i+1, ] <- x[under_pt, ] + v
 	}
 	
-	# ASSIGN OLD ROWNAMES TO NEW MATRIX IF NUMBER OF NEW POINTS IS LESS THAN ORIGINAL NUMBER OF POINTS
-	if(n < nrow(x)) rownames(r) <- row_names[1:nrow(r)]
+	# ASSIGN ROWNAMES TO NEW MATRIX IF NUMBER OF NEW POINTS IS LESS THAN ORIGINAL NUMBER OF POINTS
+	if(nrow(r) <= length(row_names)) rownames(r) <- row_names[1:nrow(r)]
 
 	r
 }
