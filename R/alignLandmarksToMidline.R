@@ -1,6 +1,6 @@
 alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*$)', 
 	right = '(_r[_]?|_right[_]?)([0-9]*$)', left.remove = '\\2', right.remove = '\\2', 
-	average = FALSE){
+	use = rep(TRUE, dim(lm.matrix)[1]), average = FALSE){
 	# Modified from R function AMP() written by Annat Haber
 	# The function uses midline landmarks and the average of bilateral landmarks to find the midline
 	# Then aligns all landmarks to the midline
@@ -30,9 +30,11 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 
 		# GET MIDLINE AND BILATERAL LANDMARKS
 		midline_landmarks <- lm.matrix[landmark_name == landmark_names, ]
-
+		
 		# SKIP IF ANY LANDMARKS ARE NA
 		if(sum(is.na(midline_landmarks)) > 0) next
+
+		if(!landmark_name %in% landmark_names[use]) next
 
 		# GET MEAN OF BILATERAL LANDMARKS
 		if(is.matrix(midline_landmarks)) midline_landmarks <- colMeans(midline_landmarks)
@@ -62,7 +64,7 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 	if(average){
 	
 		# SET MIDLINE NON-NA POINTS TO ZERO
-		lm.matrix[(!is.na(lm.matrix[, 1])) * (id_side == 'M') == 1, 3] <- 0
+		lm.matrix[(!is.na(lm.matrix[, 1])) * (id_side == 'M') == 1, dim(lm.matrix)[2]] <- 0
 		
 		lm_matrix_avg <- lm.matrix
 
@@ -74,8 +76,13 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 			if(length(match) > 1){
 
 				# GET AVERAGE POSITION
-				new_pos <- colMeans(cbind(lm.matrix[match[1:2], 1:2], abs(lm.matrix[match[1:2], 3])), na.rm=TRUE)
-				lm_matrix_avg[i, ] <- c(new_pos[1:2], new_pos[3]*sign(lm.matrix[i, 3]))
+				if(dim(lm.matrix)[2] == 2){
+					new_pos <- colMeans(cbind(lm.matrix[match[1:2], 1], abs(lm.matrix[match[1:2], 2])), na.rm=TRUE)
+					lm_matrix_avg[i, ] <- c(new_pos[1], new_pos[2]*sign(lm.matrix[i, 2]))
+				}else{
+					new_pos <- colMeans(cbind(lm.matrix[match[1:2], 1:2], abs(lm.matrix[match[1:2], 3])), na.rm=TRUE)
+					lm_matrix_avg[i, ] <- c(new_pos[1:2], new_pos[3]*sign(lm.matrix[i, 3]))
+				}
 			}
 		}
 
