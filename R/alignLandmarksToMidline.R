@@ -7,6 +7,9 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 
 	# MAKE ID VECTOR
 	id_side <- rep(NA, length(rownames(lm.matrix)))
+	
+	# Check that use is logical
+	if(!is.logical(use[1])) stop("Use must be vector of logicals.")
 
 	# ID EACH LANDMARK AS LEFT, RIGHT OR MIDLINE
 	id_side[grepl(pattern=left, x=rownames(lm.matrix), ignore.case=TRUE)] <- 'L'
@@ -58,36 +61,57 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 	# FIND ROTATION MATRIX TO APPLY TO ENTIRE LANDMARK MATRIX
 	SVD <- svd(midline_matrix - midline_matrix_centroid[1:nrow(midline_matrix), ])
 
+	# Get points not in midline matrix
+	lm_not_midline <- lm.matrix[!rownames(lm.matrix) %in% midline_matrix, ]
+
 	# ROTATE LANDMARKS TO ALIGN WITH MID-SAGITTAL PLANE
-	lm.matrix <- lm.matrix %*% SVD$v
+	if(nrow(lm_not_midline) > 3 && nrow(midline_matrix) > 3){
+
+		lm_matrix_r <- lm_not_midline %*% SVD$v
+		midline_matrix_r <- midline_matrix %*% SVD$v
 	
+		## Check for chirality change/flip
+		# FIND NORMAL VECTORS FOR PRE AND POST ROTATED SETS
+		pre_cprod <- uvector(cprod(midline_matrix[2, ]-midline_matrix[1, ], midline_matrix[3, ]-midline_matrix[1, ]))
+		pos_cprod <- uvector(cprod(midline_matrix_r[2, ]-midline_matrix_r[1, ], midline_matrix_r[3, ]-midline_matrix_r[1, ]))
+
+		# FIND DISTANCE FROM CPROD VECTOR TO OTHER POINTS
+		dpp <- dppt(pre_cprod, lm.matrix[1:min(3,nrow(lm.matrix)), ])
+		dpp_r <- dppt(pos_cprod, lm_matrix_r[1:min(3,nrow(lm_matrix_r)), ])
+
+		# CHIRALITY HAS FLIPPED, FLIP 3RD COLUMN OF SVD$v AND RE-TRANSFORM
+		if(sum(round(abs(dpp - dpp_r), 7)) > 0.001) SVD$v[, 3] <- -SVD$v[, 3]
+	}
+
+	lm_matrix <- lm.matrix %*% SVD$v
+
 	if(average){
 	
 		# SET MIDLINE NON-NA POINTS TO ZERO
-		lm.matrix[(!is.na(lm.matrix[, 1])) * (id_side == 'M') == 1, dim(lm.matrix)[2]] <- 0
+		lm_matrix[(!is.na(lm_matrix[, 1])) * (id_side == 'M') == 1, dim(lm_matrix)[2]] <- 0
 		
-		lm_matrix_avg <- lm.matrix
+		lm_matrix_avg <- lm_matrix
 
 		# FIND CORRESPONDING BILATERAL LANDMARKS
-		for(i in 1:nrow(lm.matrix)){
+		for(i in 1:nrow(lm_matrix)){
 
 			match <- which(landmark_names[i] == landmark_names)
 
 			if(length(match) > 1){
 
 				# GET AVERAGE POSITION
-				if(dim(lm.matrix)[2] == 2){
-					new_pos <- colMeans(cbind(lm.matrix[match[1:2], 1], abs(lm.matrix[match[1:2], 2])), na.rm=TRUE)
-					lm_matrix_avg[i, ] <- c(new_pos[1], new_pos[2]*sign(lm.matrix[i, 2]))
+				if(dim(lm_matrix)[2] == 2){
+					new_pos <- colMeans(cbind(lm_matrix[match[1:2], 1], abs(lm_matrix[match[1:2], 2])), na.rm=TRUE)
+					lm_matrix_avg[i, ] <- c(new_pos[1], new_pos[2]*sign(lm_matrix[i, 2]))
 				}else{
-					new_pos <- colMeans(cbind(lm.matrix[match[1:2], 1:2], abs(lm.matrix[match[1:2], 3])), na.rm=TRUE)
-					lm_matrix_avg[i, ] <- c(new_pos[1:2], new_pos[3]*sign(lm.matrix[i, 3]))
+					new_pos <- colMeans(cbind(lm_matrix[match[1:2], 1:2], abs(lm_matrix[match[1:2], 3])), na.rm=TRUE)
+					lm_matrix_avg[i, ] <- c(new_pos[1:2], new_pos[3]*sign(lm_matrix[i, 3]))
 				}
 			}
 		}
 
 		# AVERAGE BILATERAL LANDMARKS
-		lm.matrix <- lm_matrix_avg
+		lm_matrix <- lm_matrix_avg
 	}
 
 	# FIND MIDLINE ERRORS
@@ -99,14 +123,14 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 		if(sum(landmark_name == landmark_names) != 1) next
 
 		# GET MIDLINE ERROR, SQUARE OF Z-COORDINATE DIFFERENCE FROM ZERO
-		midline_error <- c(midline_error, sqrt((lm.matrix[landmark_name == landmark_names, ncol(lm.matrix)])^2))
+		midline_error <- c(midline_error, sqrt((lm_matrix[landmark_name == landmark_names, ncol(lm_matrix)])^2))
 		midline_names <- c(midline_names, landmark_name)
 	}
 
 	# ADD NAMES TO ERROR VECTOR
 	names(midline_error) <- midline_names
 
-	l <- list(lm.matrix=lm.matrix, midline.error=midline_error)
+	l <- list(lm.matrix=lm_matrix, midline.error=midline_error)
 	class(l) <- 'alignLandmarksToMidline'
 	return(l)
 }
