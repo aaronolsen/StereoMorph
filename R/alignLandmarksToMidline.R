@@ -65,7 +65,7 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 	lm_not_midline <- lm.matrix[!rownames(lm.matrix) %in% midline_matrix, ]
 
 	# ROTATE LANDMARKS TO ALIGN WITH MID-SAGITTAL PLANE
-	if(nrow(lm_not_midline) > 3 && nrow(midline_matrix) > 3){
+	if(nrow(lm_not_midline) >= 3 && nrow(midline_matrix) >= 3){
 
 		lm_matrix_r <- lm_not_midline %*% SVD$v
 		midline_matrix_r <- midline_matrix %*% SVD$v
