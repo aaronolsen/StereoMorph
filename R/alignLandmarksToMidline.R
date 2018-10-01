@@ -72,8 +72,8 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 	
 		## Check for chirality change/flip
 		# FIND NORMAL VECTORS FOR PRE AND POST ROTATED SETS
-		pre_cprod <- uvector(cprod(midline_matrix[2, ]-midline_matrix[1, ], midline_matrix[3, ]-midline_matrix[1, ]))
-		pos_cprod <- uvector(cprod(midline_matrix_r[2, ]-midline_matrix_r[1, ], midline_matrix_r[3, ]-midline_matrix_r[1, ]))
+		pre_cprod <- uvector_SM(cprod_SM(midline_matrix[2, ]-midline_matrix[1, ], midline_matrix[3, ]-midline_matrix[1, ]))
+		pos_cprod <- uvector_SM(cprod_SM(midline_matrix_r[2, ]-midline_matrix_r[1, ], midline_matrix_r[3, ]-midline_matrix_r[1, ]))
 
 		# FIND DISTANCE FROM CPROD VECTOR TO OTHER POINTS
 		dpp <- dppt(pre_cprod, lm.matrix[1:min(3,nrow(lm.matrix)), ])

@@ -62,7 +62,7 @@ reconstructStereoSets <- function(shapes.2d, shapes.3d, cal.file,
 	}
 
 	#print(files_2d_matched);print(files_2d_wo_ext);print(files_2d_wo_asp)
-	
+
 	# IF update.only, REMOVE CHILD FILES THAT ARE NOT MORE RECENT THAN THEIR PARENT FILES
 	if(update.only){
 		

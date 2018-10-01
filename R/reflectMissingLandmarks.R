@@ -13,7 +13,7 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 	id_side <- rep(NA, length(rownames_lm_matrix))
 	id_side[grepl(pattern=left, x=rownames_lm_matrix, ignore.case=TRUE)] <- 'L'
 	id_side[grepl(pattern=right, x=rownames_lm_matrix, ignore.case=TRUE)] <- 'R'
-
+	
 	# GET LIST OF LANDMARK NAMES WITHOUT SIDES
 	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames_lm_matrix, ignore.case=TRUE)
 	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names, ignore.case=TRUE)
@@ -55,6 +55,45 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames(lm_matrix), ignore.case=TRUE)
 	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names, ignore.case=TRUE)
 
+	#print(cbind(rownames(lm_matrix), id_side, landmark_names))
+
+	all_left <- all_right <- FALSE
+	if(any(!is.na(lm_matrix[id_side == 'L', 1]))) all_right <- TRUE
+	if(any(!is.na(lm_matrix[id_side == 'R', 1]))) all_left <- TRUE
+	
+	# IF LANDMARKS ARE ONLY ON ONE SIDE OR ALONG MIDLINE THEN CHIRALITY GETS FLIPPED
+	# PROJECT UNILATERAL LANDMARK FURTHEST FROM THE MIDLINE ACROSS THE MIDLINE TO PREVENT THIS
+	if(sum(!is.na(lm_matrix[id_side == 'M', 1])) >= 3 && (all_right || all_left)){
+
+		# Get just midline points and center about centroid
+		midline_points <- lm_matrix[id_side == 'M', ]
+		midline_points <- midline_points[!is.na(midline_points[,1]), ]
+		centroid_align <- midline_points - matrix(colMeans(midline_points, na.rm=TRUE), nrow(midline_points), ncol(midline_points), byrow=TRUE)
+
+		# Check for differences in point position
+		if(mean(apply(centroid_align, 2, 'sd', na.rm=TRUE)) > 1e-10){
+
+			# SVD of centroid-aligned points
+			plane <- list(N=svd(centroid_align[!is.na(centroid_align[,1]),])$v[, 3], Q=colMeans(midline_points, na.rm=TRUE))
+
+			# Find distance of points from plane
+			dptp <- abs(distancePointToPlane(lm_matrix, plane$N, plane$Q))
+		
+			# Find furthest point from plane
+			which_max_dptp <- which.max(dptp)
+		
+			# Reflect furthest point from
+			which_sides <- which(landmark_names == landmark_names[which_max_dptp])
+		
+			# Project point to other side by multiplying distance from midline plane by 2 and reflecting across
+			if(length(which_sides) == 2){
+				other_side_idx <- which_sides[which_sides != which_max_dptp]
+				lm_matrix[other_side_idx,] <- lm_matrix[which_max_dptp,] + 2*dptp[which_max_dptp]*plane$N
+				#print(lm_matrix[c(other_side_idx, which_max_dptp), ])
+			}
+		}
+	}
+
 	# GET UNIQUE LIST OF LANDMARK NAMES WITHOUT SIDES
 	unique_landmark_names <- unique(landmark_names)
 
@@ -85,6 +124,8 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 	lm_matrix_fill[which(is.na(lm_matrix_r))] <- lm_matrix_a[which(is.na(lm_matrix_r))]
 	lm_matrix_a[which(is.na(lm_matrix_a))] <- lm_matrix_r[which(is.na(lm_matrix_a))]
 
+	#print(cbind(rownames(lm_matrix), rownames(lm_matrix_r)))
+
 	# AVERAGE THE TWO MATRICES
 	# lm_matrix_a CORRESPONDS TO rec.ref IN OSYMM()
 	# lm_matrix_fill CORRESPONDS TO rec.orig IN OSYMM()
@@ -93,7 +134,7 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 	}else{
 		lm_matrix_symm <- lm_matrix_fill
 	}
-
+	
 	# FIND ALIGNMENT ERRORS
 	align_error <- rep(NA, 0)
 	align_names <- rep(NA, 0)
