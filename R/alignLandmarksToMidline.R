@@ -76,8 +76,8 @@ alignLandmarksToMidline <- function(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*
 		pos_cprod <- uvector_SM(cprod_SM(midline_matrix_r[2, ]-midline_matrix_r[1, ], midline_matrix_r[3, ]-midline_matrix_r[1, ]))
 
 		# FIND DISTANCE FROM CPROD VECTOR TO OTHER POINTS
-		dpp <- dppt(pre_cprod, lm.matrix[1:min(3,nrow(lm.matrix)), ])
-		dpp_r <- dppt(pos_cprod, lm_matrix_r[1:min(3,nrow(lm_matrix_r)), ])
+		dpp <- distancePointToPoint(pre_cprod, lm.matrix[1:min(3,nrow(lm.matrix)), ])
+		dpp_r <- distancePointToPoint(pos_cprod, lm_matrix_r[1:min(3,nrow(lm_matrix_r)), ])
 
 		# CHIRALITY HAS FLIPPED, FLIP 3RD COLUMN OF SVD$v AND RE-TRANSFORM
 		if(sum(round(abs(dpp - dpp_r), 7)) > 0.001) SVD$v[, 3] <- -SVD$v[, 3]
