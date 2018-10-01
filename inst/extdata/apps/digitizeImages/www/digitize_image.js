@@ -3023,7 +3023,7 @@ function submitCaptureOutput(){
 			if(server_out.change_image !== undefined) onWindowResize();
 
 			// Get image WH ratio
-			wh_ratio = myImageInit[0].w / myImageInit[0].h
+			wh_ratio = Math.round((myImageInit[0].w / myImageInit[0].h)*100) / 100;
 
 			// Copy image zoom and position
 			if(server_out.zoom_d !== undefined){
