@@ -7,9 +7,9 @@ citEntry(entry="Article",
   	year = 2015,
 	volume = "6",
 	pages = "351-356",
-        textVersion = "Olsen Aaron M, Mark W Westneat. 2015. StereoMorph: an R package for the collection of 3D landmarks and curves using a stereo camera set-up. Methods in Ecology and Evolution 6:351-356. DOI: 10.1111/2041-210X.12326.”)
+        textVersion = "Olsen Aaron M, Mark W Westneat. 2015. StereoMorph: an R package for the collection of 3D landmarks and curves using a stereo camera set-up. Methods in Ecology and Evolution 6:351-356. DOI: 10.1111/2041-210X.12326.")
 
-citEntry(entry = "Manual",
+citEntry(entry="Manual",
 	title = "{StereoMorph}: Stereo Camera Calibration and Reconstruction",
 	author = c(person("Aaron", "Olsen"),
 			   person("Annat", "Haber")),

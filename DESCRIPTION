@@ -1,10 +1,10 @@
 Package: StereoMorph
-Date: 2017-03-17
+Date: 2018-10-05
 Title: Stereo Camera Calibration and Reconstruction
 Description: Functions for the collection of 3D points and curves using a stereo camera setup.
 Version: 1.6.2
 Depends: R (>= 2.11.0)
-Imports: grDevices, graphics, stats, utils, bezier (>= 1.1), grid, rjson, shiny (>= 0.13.0), Rcpp (>= 0.9.9), jpeg, tiff, png, svgViewR (>= 1.0.1)
+Imports: grDevices, graphics, stats, utils, bezier (>= 1.1), grid, rjson, shiny (>= 0.13.0), Rcpp (>= 0.9.9), jpeg, tiff, png, svgViewR (>= 1.0.1), MASS
 LinkingTo: Rcpp
 Suggests: rgl
 Author: Aaron Olsen, Annat Haber

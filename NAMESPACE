@@ -14,6 +14,7 @@ import(grid)
 import(rjson)
 import(shiny)
 import(svgViewR)
+import(MASS)
 
 S3method(summary, alignLandmarksToMidline)
 S3method(summary, dltCalibrateCameras)
