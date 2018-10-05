@@ -3,11 +3,13 @@
 \alias{StereoMorph}
 
 \alias{alignShapesToMidline}
+\alias{btShapes}
 \alias{checkCornerOrder}
 \alias{check_system_command_SM}
 \alias{cprod_SM}
 \alias{createErrorPlots}
 \alias{dilateImage}
+\alias{distancePointToPlane}
 \alias{distortionError}
 \alias{dltCCEstimateStartParams}
 \alias{drawRectangle}
@@ -32,6 +34,7 @@
 \alias{matchCurvePoints}
 \alias{meanBlurImage}
 \alias{orderCorners}
+\alias{polyArea}
 \alias{print_processing_times}
 \alias{process_digitize_images_input}
 \alias{readLandmarksToArray}
