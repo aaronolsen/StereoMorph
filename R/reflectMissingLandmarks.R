@@ -58,8 +58,8 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 	#print(cbind(rownames(lm_matrix), id_side, landmark_names))
 
 	all_left <- all_right <- FALSE
-	if(any(!is.na(lm_matrix[id_side == 'L', 1]))) all_right <- TRUE
-	if(any(!is.na(lm_matrix[id_side == 'R', 1]))) all_left <- TRUE
+	if(sum(is.na(lm_matrix[id_side == 'L', 1])) == sum(id_side == 'L')) all_right <- TRUE
+	if(sum(is.na(lm_matrix[id_side == 'R', 1])) == sum(id_side == 'R')) all_left <- TRUE
 	
 	# IF LANDMARKS ARE ONLY ON ONE SIDE OR ALONG MIDLINE THEN CHIRALITY GETS FLIPPED
 	# PROJECT UNILATERAL LANDMARK FURTHEST FROM THE MIDLINE ACROSS THE MIDLINE TO PREVENT THIS
@@ -78,11 +78,14 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 
 			# Find distance of points from plane
 			dptp <- abs(distancePointToPlane(lm_matrix, plane$N, plane$Q))
+			
+			# Make midline points NA just in case a midline point is furthest from the midline
+			dptp[id_side == 'M'] <- NA
 		
 			# Find furthest point from plane
 			which_max_dptp <- which.max(dptp)
 		
-			# Reflect furthest point from
+			# Find indices for landmark on L and R
 			which_sides <- which(landmark_names == landmark_names[which_max_dptp])
 		
 			# Project point to other side by multiplying distance from midline plane by 2 and reflecting across
