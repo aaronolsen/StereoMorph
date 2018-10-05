@@ -10,7 +10,7 @@ This function aligns a set of bilateral landmarks to the midline plane. Midline 
 alignLandmarksToMidline(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*$)', 
                         right = '(_r[_]?|_right[_]?)([0-9]*$)',
                         left.remove = '\\\2', right.remove = '\\\2', 
-                        average = FALSE)
+                        use = rep(TRUE, dim(lm.matrix)[1]), average = FALSE)
 
 \method{summary}{alignLandmarksToMidline}(object, ...)
 }
@@ -20,6 +20,7 @@ alignLandmarksToMidline(lm.matrix, left = '(_l[_]?|_left[_]?)([0-9]*$)',
   \item{right}{a regular expression to identify right landmarks in the row names of \code{lm.matrix}.}
   \item{left.remove}{an expression for input to the \code{gsub()} function indicating which element of \code{left} in parentheses should be removed to create a landmark name that is not side-specific (see "Details").}
   \item{right.remove}{an expression for input to the \code{gsub()} function indicating which element of \code{right} in parentheses should be removed to create a landmark name that is not side-specific (see "Details").}
+  \item{use}{a vector of \code{TRUE} or \code{FALSE} values of the same length as the number of landmarks to specify which landmarks will be used in aligning to the midline. Default is that all landmarks are used.}
   \item{average}{Whether to average left and right landmarks after alignment. Can be left false if landmarks previously reflected with \code{average} equal to \code{TRUE} (see \code{\link{reflectMissingLandmarks}}).}
   \item{object}{a list of class \code{"alignLandmarksToMidline"} (output of this function).}
   \item{...}{further arguments passed to or from other methods.}
