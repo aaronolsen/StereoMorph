@@ -1,11 +1,11 @@
-btShapes <- function(scores, vectors, fcn, pcs = 1:2, n = c(3,4), m = 3, row.names = NULL, 
-	pc.margin=c(0,0), phy.mean = NULL, centroid.size = 1, ...){
+btShapes <- function(scores, vectors, fcn, row.names, pcs = 1:2, n = c(3,4), m = 3, 
+	pc.margin=c(0,0), phy.means = NULL, centroid.size = 1, ...){
 
 	# Set total number of shapes
 	n_shapes <- n[1]*n[2]
 
 	# Start matrix with mean PC scores for all coordinates
-	scores_bt <- matrix(colMeans(scores), n_shapes, nrow(vectors), byrow=TRUE)
+	scores_bt <- matrix(colMeans(scores), n_shapes, ncol(vectors), byrow=TRUE)
 
 	# Set min and max for scores along PC1
 	pc1_range <- range(scores[, pcs[1]])
@@ -27,31 +27,31 @@ btShapes <- function(scores, vectors, fcn, pcs = 1:2, n = c(3,4), m = 3, row.nam
 	row_names <- cbind(paste0('PC', pcs[1], '_', rep(1:n[1], n[2])), paste0('PC', pcs[2], '_', c(matrix(rep(1:n[2], n[1]), n[1], n[2], byrow=TRUE))))
 	rownames(scores_bt) <- paste0(row_names[, 1], '_', row_names[, 2])
 	
-	if(is.null(phy.mean)){
+	if(is.null(phy.means)){
 
 		# Back-transform PC scores by multiplying by the inverse of the eigenvector matrix
 		lm_bt_temp <- scores_bt %*% solve(vectors)
 
 	}else{
-		
+	
 		# Create rows of 1s
 		one <- matrix(1, n_shapes, 1)
 
-		# Create matrix to account for phylogenetic covariance
-		a <- as.matrix(read.table(file=paste0(fdir, '/', PC_type, '/', set_name, '_phy_mean_vec.txt')))
-
 		# Back-transform PC scores by multiplying by the inverse of the eigenvector matrix
-		lm_bt_temp <- (scores_bt %*% solve(vectors)) + one %*% t(a)
+		# Need ginv (from MASS) because eigen vectors from phyl.pca is not a square matrix
+		# The first version of phyl.pca did return a square matrix but then it was changed 
+		# to return a non-square matrix
+		lm_bt_temp <- (scores_bt %*% ginv(vectors)) + one %*% t(phy.means)
 	}
-
+	
 	# Create array to hold each backtransform shape
-	lm_arr <- array(NA, dim=c(ncol(scores) / m, m, n_shapes), dimnames=list(row.names, NULL, rownames(scores_bt)))
+	lm_arr <- array(NA, dim=c(length(row.names), m, n_shapes), dimnames=list(row.names, NULL, rownames(scores_bt)))
 
 	# Fill shape array
 	for(i in 1:n_shapes){
 	
 		# Get shape coordinates
-		xy <- matrix(lm_bt_temp[i, ], nrow=ncol(scores) / m, byrow=TRUE)
+		xy <- matrix(lm_bt_temp[i, ], nrow=length(row.names), ncol=m, byrow=TRUE)
 		
 		# Center about zero
 		xy <- xy - matrix(colMeans(xy), nrow(xy), ncol(xy), byrow=TRUE)
