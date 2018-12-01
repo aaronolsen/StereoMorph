@@ -64,8 +64,7 @@ btShapes <- function(scores, vectors, fcn, row.names, pcs = 1:2, n = c(3,4), m =
 	}
 
 	# Flip positions of shapes in plot by reversing scores
-	#for(i in 1:length(pcs)) if(flip[i]) scores_bt[, pcs[i]] <- rev(scores_bt[, pcs[i]])
-	for(i in 1:length(pcs)) if(flip[i] < 0) scores_bt[, pcs[i]] <- -scores_bt[, pcs[i]]
+	for(i in 1:length(pcs)) scores_bt[, pcs[i]] <- flip[i]*scores_bt[, pcs[i]]
 
 	# Plot each shape
 	for(i in 1:n_shapes){
