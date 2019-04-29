@@ -1,6 +1,8 @@
 btShapes <- function(scores, vectors, fcn, row.names, pcs = 1:2, n = c(3,4), m = 3, 
 	pc.margin=c(0,0), phy.means = NULL, centroid.size = 1, flip = rep(1,2), ...){
 
+	if(length(row.names) == 0) stop("Input parameter 'row.names' has length of 0. Length must correspond to the number of landmarks.")
+
 	# Set total number of shapes
 	n_shapes <- n[1]*n[2]
 
