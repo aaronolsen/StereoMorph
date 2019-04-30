@@ -10,13 +10,19 @@ undistortShapes <- function(shapes, cal.file, view = NULL){
 
 	# If no undistortion parameters, return original shapes
 	if(is.null(cal_list$undistort.params)) return(shapes)
-
+	
 	# Undistort landmarks
 	if(!is.null(shapes$landmarks.pixel)){
 	
 		if(length(dim(shapes$landmarks.pixel)) == 3){
+		
 			for(view in dimnames(shapes$landmarks.pixel)[[3]]){
 
+				# Check that view is found in undistortion parameters
+				if(!view %in% dimnames(cal_list$undistort.params)[[1]]){
+					stop(paste0("View name from the digitized shapes ('", view, "') not found in the view names from the undistortion calibration ('", paste0(dimnames(cal_list$undistort.params)[[1]], collapse="', '"), "')"))
+				}
+			
 				# Undistort
 				shapes$landmarks.pixel[, , view] <- undistort(shapes$landmarks.pixel[, , view], 
 					image.size=cal_list$img.size[view, ], center=cal_list$undistort.params[view, c('cx', 'cy')], 
