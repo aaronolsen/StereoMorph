@@ -60,7 +60,7 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 	all_left <- all_right <- FALSE
 	if(sum(is.na(lm_matrix[id_side == 'L', 1])) == sum(id_side == 'L')) all_right <- TRUE
 	if(sum(is.na(lm_matrix[id_side == 'R', 1])) == sum(id_side == 'R')) all_left <- TRUE
-	
+
 	# IF LANDMARKS ARE ONLY ON ONE SIDE OR ALONG MIDLINE THEN CHIRALITY GETS FLIPPED
 	# PROJECT UNILATERAL LANDMARK FURTHEST FROM THE MIDLINE ACROSS THE MIDLINE TO PREVENT THIS
 	if(sum(!is.na(lm_matrix[id_side == 'M', 1])) >= 3 && (all_right || all_left)){
