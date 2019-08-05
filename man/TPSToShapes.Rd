@@ -12,7 +12,7 @@ TPSToShapes(tps.file, shapes.file, image.file, landmark.names,
   \item{tps.file}{A TPS file.}
   \item{shapes.file}{A folder where the shape files will be saved. If the TPS file contains landmark sets for more than one specimen, the landmarks for each specimen will be written to a separate shape file.}
   \item{image.file}{A folder containing images corresponding to each of the specimens in the TPS file. The image filenames must match the text in the \code{spec.names} field within the TPS file.}
-  \item{landmark.names}{The names corresponding to the landmarks in the TPS file, in the same order in which they are listed in the TPS file.}
+  \item{landmark.names}{The names corresponding to the landmarks in the TPS file, in the same order in which they are listed in the TPS file. This can be either a vector of landmark names or a '.txt' file with each of the landmark names listed on a separate line.}
   \item{spec.names}{The label in the TPS file indicating the specimen name.}
   \item{scaling.units}{The scaling units for the TPS landmarks (e.g 'cm', 'mm').}
   \item{flip.y}{A logical indicating whether the y-coordinates of the TPS landmarks should be flipped.}
