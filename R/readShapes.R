@@ -65,11 +65,11 @@ readShapes <- function(file, fields=NULL){
 				if(!name %in% names(dims)) dims[[name]] <- list()
 
 				# ONLY GET DIMENSIONS FROM MATRICES
-				if(class(read_shapes[[i]][[name]]) %in% c('character', 'numeric')){
+				if(inherits(read_shapes[[i]][[name]], c('character', 'numeric'))){
 					dims[[name]] <- list('type' = 'vector', 'length' = length(file))
 				}
 
-				if(class(read_shapes[[i]][[name]]) %in% c('matrix')){
+				if(is.matrix(read_shapes[[i]][[name]])){
 
 					# CREATE EMPTY FIELDS
 					if(!'nrow' %in% names(dims[[name]])){
@@ -87,7 +87,7 @@ readShapes <- function(file, fields=NULL){
 					if(!is.null(colnames(read_shapes[[i]][[name]]))) dims[[name]][['colnames']] <- unique(c(dims[[name]][['colnames']], colnames(read_shapes[[i]][[name]])))
 				}
 
-				if(class(read_shapes[[i]][[name]]) %in% c('list') && length(read_shapes[[i]][[name]]) > 0){
+				if(is.list(read_shapes[[i]][[name]]) && length(read_shapes[[i]][[name]]) > 0){
 					dims[[name]] <- list('type' = 'list', 'length' = length(file))
 				}
 			}
