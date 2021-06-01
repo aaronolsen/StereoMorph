@@ -39,5 +39,5 @@ grid <- imagePlaneGridTransform(p=p, nx=21, ny=14)
 plot(grid)
 
 ## MARK CORNERS OF GRID FROM p
-points(matrix(p, nrow=4, ncol=2, byrow=TRUE), col='red', lwd=2, cex=1.5)
+points(matrix(p[1:8], nrow=4, ncol=2, byrow=TRUE), col='red', lwd=2, cex=1.5)
 }
