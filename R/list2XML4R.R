@@ -22,12 +22,12 @@ list2XML4R <- function(list, file="", ind=0){
 			str <- c(str, list2XML4R(list[[name]], ind=ind+1))
 		}
 
-		if(class(list[[name]]) == 'logical' || class(list[[name]]) == 'character' || class(list[[name]]) == 'integer' || class(list[[name]]) == 'vector' || class(list[[name]]) == 'numeric'){
-			
+		if (inherits(list[[name]], c('logical', 'character', 'integer', 'vector', 'numeric'))){
+
 			names <- ifelse(is.null(names(list[[name]])), FALSE, TRUE)
 			
 			type <- 'vector'
-			if(class(list[[name]]) == 'logical') type <- 'logical'
+			if (inherits(list[[name]], 'logical')) type <- 'logical'
 
 			new_line <- '\n'
 			if(length(list[[name]]) == 1) new_line <- ''
@@ -50,7 +50,7 @@ list2XML4R <- function(list, file="", ind=0){
 			}
 		}
 
-		if(class(list[[name]]) == 'matrix'){
+		if (inherits(list[[name]], 'matrix')){
 		
 			row_names <- ifelse(is.null(rownames(list[[name]])), FALSE, TRUE)
 			col_names <- ifelse(is.null(colnames(list[[name]])), FALSE, TRUE)
@@ -72,7 +72,7 @@ list2XML4R <- function(list, file="", ind=0){
 			}
 		}
 
-		if(class(list[[name]]) == 'array'){
+		if (inherits(list[[name]], 'array')){
 			
 			# ARRAY DIMENSIONS
 			dims <- dim(list[[name]])
