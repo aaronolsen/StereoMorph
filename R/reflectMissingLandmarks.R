@@ -13,7 +13,7 @@ reflectMissingLandmarks <- function(lm.matrix, left = '(_l|_left)([_]?[0-9]*$)',
 	id_side <- rep(NA, length(rownames_lm_matrix))
 	id_side[grepl(pattern=left, x=rownames_lm_matrix, ignore.case=TRUE)] <- 'L'
 	id_side[grepl(pattern=right, x=rownames_lm_matrix, ignore.case=TRUE)] <- 'R'
-	
+
 	# GET LIST OF LANDMARK NAMES WITHOUT SIDES
 	landmark_names <- gsub(pattern=left, replacement=left.remove, x=rownames_lm_matrix, ignore.case=TRUE)
 	landmark_names <- gsub(pattern=right, replacement=right.remove, x=landmark_names, ignore.case=TRUE)
