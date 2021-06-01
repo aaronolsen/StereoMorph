@@ -35,8 +35,9 @@ reflectMissingShapes <- function(shapes, file = NULL, print.progress = FALSE, ..
 		}
 
 		# CALL DRAW SHAPES FOR EACH FILE
-		for(i in 1:length(shapes_in_fpaths))
+		for(i in 1:length(shapes_in_fpaths)){
 			rms <- reflectMissingShapes(shapes=XML4R2list(shapes_in_fpaths[i]), file=shapes_save_fpaths[i], print.progress=print.progress, ...)
+		}
 
 		if(length(shapes_in_fpaths) == 1) return(rms)
 
