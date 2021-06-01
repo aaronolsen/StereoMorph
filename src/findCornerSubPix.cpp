@@ -59,11 +59,22 @@ Rcpp::NumericMatrix findCornerSubPix(Rcpp::NumericMatrix image, Rcpp::IntegerMat
 
 	// CREATE WINDOW INDICES FOR ITERATING THROUGH SUBMATRIX
 	for(i = 0; i < win; i++) for(j = 0; j < win; j++) *(wvec.begin()+i+j*win) = i+j*nrow_img;
-	std::transform(wvec.begin(), wvec.end(), wvec.begin(), std::bind1st(std::plus<int>(), -*(wvec.begin()+((win_win)/2))));
+	//for(i = 0; i < wvec.size(); i++) Rcpp::Rcout << wvec[i] << std::endl;
+
+	// Subtract constant
+	int sub_cons = *(wvec.begin()+((win_win)/2));
+	for(i = 0; i < win_win; i++) wvec[i] = wvec[i] - sub_cons;
+
+	//for(i = 0; i < wvec.size(); i++) Rcpp::Rcout << wvec[i] << ',';
+	//Rcpp::Rcout << win_win << std::endl;
+	//Rcpp::Rcout << wvec.size() << std::endl;
 
 	// CREATE KERNEL INDICES FOR ITERATING THROUGH WINDOW
 	for(i = 0; i < 3; i++) for(j = 0; j < 3; j++) *(kvec.begin()+i+j*3) = i+j*nrow_img;
-	std::transform(kvec.begin(), kvec.end(), kvec.begin(), std::bind1st(std::plus<int>(), -*(kvec.begin()+4)));
+
+	// Subtract constant
+	sub_cons = *(kvec.begin()+4);
+	for(i = 0; i < 9; i++) kvec[i] = kvec[i] - sub_cons;
 
 	// CREATE X AND Y KERNEL MULTIPLIER VECTORS
 	for(i=0; i < 3; i++) for(j = 0, k=-1; j < 3; j++, k++) *(kmlt_x.begin()+i+j*3) = k;

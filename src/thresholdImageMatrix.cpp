@@ -16,7 +16,7 @@ Rcpp::IntegerMatrix thresholdImageMatrix(Rcpp::NumericMatrix mat, Rcpp::NumericM
 	std::map<int, int> tab;
 	int nrow = mat.nrow();
 	int ncol = mat.ncol();
-	std::pointer_to_unary_function <double,double> roundObject (round) ;
+	//std::pointer_to_unary_function <double,double> roundObject (round) ;
 
 	// CREATE EMPTY INTEGER MATRIX
 	Rcpp::IntegerMatrix mat_int(nrow, ncol);
@@ -25,12 +25,19 @@ Rcpp::IntegerMatrix thresholdImageMatrix(Rcpp::NumericMatrix mat, Rcpp::NumericM
 	// COPY MATRIX
 	std::copy(mat.begin(), mat.end(), mat_num.begin());
 
-	// MULTIPLY BY 255 AND ROUND TO CREATE BINS
-	std::transform(mat_num.begin(), mat_num.end(), mat_num.begin(), std::bind1st(std::multiplies<double>(), 255));
-	std::transform(mat_num.begin(), mat_num.end(), mat_num.begin(), roundObject);
+	// Multiply by 255 and round to create bins
+	for (i = 0; i < ncol; i++) {
+		for (j = 0; j < nrow; j++) {
+			mat_num(j,i) = std::round(mat_num(j,i) * 255);
+		}
+	}
 
-	std::transform(thresh_mat.begin(), thresh_mat.end(), thresh_mat.begin(), std::bind1st(std::multiplies<double>(), 255));
-	std::transform(thresh_mat.begin(), thresh_mat.end(), thresh_mat.begin(), roundObject);
+	// Multiply by 255 and round to create bins
+	for (i = 0; i < thresh_mat.ncol(); i++) {
+		for (j = 0; j < thresh_mat.nrow(); j++) {
+			thresh_mat(j,i) = std::round(thresh_mat(j,i) * 255);
+		}
+	}
 
     int idelta = type == 1 ? ceil(delta) : floor(delta);
 //	Rcpp::Rcout << "idelta: " << idelta << std::endl;
