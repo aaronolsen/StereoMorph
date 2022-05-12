@@ -77,9 +77,9 @@
 \tabular{ll}{
 Package: \tab StereoMorph\cr
 Type: \tab Package\cr
-Version: \tab 1.6.4\cr
-Date: \tab 2021-05-25\cr
-License: \tab GPL-2\cr
+Version: \tab 1.6.5\cr
+Date: \tab 2022-05-11\cr
+License: \tab CC BY-SA 4.0\cr
 }
 }
 \author{
