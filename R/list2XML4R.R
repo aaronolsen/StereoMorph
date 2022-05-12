@@ -51,7 +51,7 @@ list2XML4R <- function(list, file="", ind=0){
 		}
 
 		if (inherits(list[[name]], 'matrix')){
-		
+      
 			row_names <- ifelse(is.null(rownames(list[[name]])), FALSE, TRUE)
 			col_names <- ifelse(is.null(colnames(list[[name]])), FALSE, TRUE)
 
@@ -73,7 +73,7 @@ list2XML4R <- function(list, file="", ind=0){
 		}
 
 		if (inherits(list[[name]], 'array')){
-			
+
 			# ARRAY DIMENSIONS
 			dims <- dim(list[[name]])
 			
