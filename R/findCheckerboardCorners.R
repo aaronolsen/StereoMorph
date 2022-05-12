@@ -27,11 +27,11 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 
 	# MAKE SURE INPUT TYPES AND DIMENSIONS MATCH
 	if(!is.null(corner.file)){
-		if(class(image.file) != class(corner.file)) stop(paste0("'image.file' (", class(image.file), ") and 'corner.file' (", class(corner.file), ") must be of the same class."))
-		if(class(image.file) == 'character'){
+		if((inherits(image.file, 'character') && !inherits(corner.file, 'character')) || (inherits(image.file, 'matrix') && !inherits(corner.file, 'matrix'))) stop(paste0("'image.file' (", class(image.file), ") and 'corner.file' (", class(corner.file), ") must be of the same class."))
+		if(inherits(image.file, 'character')){
 			if(length(image.file) != length(corner.file)) stop(paste0("'image.file' (", length(image.file), ") and 'corner.file' (", length(corner.file), ") must be of the same length."))
 		}
-		if(class(image.file) == 'matrix'){
+		if(inherits(image.file, 'matrix')){
 			if(nrow(image.file) != nrow(corner.file)) stop(paste0("'image.file' (", nrow(image.file), " rows) and 'corner.file' (", nrow(corner.file), " rows) must be of the same dimensions."))
 			if(ncol(image.file) != ncol(corner.file)) stop(paste0("'image.file' (", nrow(image.file), " columns) and 'corner.file' (", nrow(corner.file), " columns) must be of the same dimensions."))
 		}
