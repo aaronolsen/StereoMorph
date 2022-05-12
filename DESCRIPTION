@@ -1,8 +1,8 @@
 Package: StereoMorph
-Date: 2021-05-25
+Date: 2022-05-11
 Title: Stereo Camera Calibration and Reconstruction
 Description: Functions for the collection of 3D points and curves using a stereo camera setup.
-Version: 1.6.4
+Version: 1.6.5
 Depends: R (>= 2.11.0)
 Imports: grDevices, graphics, stats, utils, bezier (>= 1.1), grid, rjson, shiny (>= 0.13.0), Rcpp (>= 0.9.9), jpeg, tiff, png, svgViewR (>= 1.0.1), MASS
 LinkingTo: Rcpp
@@ -11,4 +11,4 @@ Author: Aaron Olsen, Annat Haber
 Maintainer: Aaron Olsen <aarolsen@gmail.com>
 Repository: CRAN
 URL: https://aaronolsen.github.io/software/stereomorph.html
-License: GPL (>= 2)
+License: CC BY-SA 4.0
