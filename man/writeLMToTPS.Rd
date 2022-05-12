@@ -23,6 +23,7 @@ NULL
 }
 \author{Aaron Olsen}
 \examples{
+\dontrun{
 # Get the path to package example files
 fdir <- paste0(path.package("StereoMorph"), "/extdata/")
 
@@ -37,4 +38,5 @@ writeLMToTPS(paste0(fdir, 'Shapes_2D'), 'Shapes_2D.tps')
 
 # Write 3D landmark coordinates from multiple shape file to TPS
 writeLMToTPS(paste0(fdir, 'Shapes_3D'), 'Shapes_3D.tps', in.pixels=FALSE)
+}
 }

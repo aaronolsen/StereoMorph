@@ -459,6 +459,7 @@ findCheckerboardCorners <- function(image.file, nx, ny, corner.file=NULL, verify
 
 				# FIND CORNERS TO SUBPIXEL RESOLUTION
 				corners_subpixel <- findCornerSubPix(img_gray, ordered_corners, sub_pix_win, sub.pix.max.iter, criteria)
+				#print(head(corners_subpixel))
 				proc_times[[paste0(dilations, ' findCornerSubPix')]][2] <- proc.time()[3]
 
 				# REVERSE X,Y ORDER

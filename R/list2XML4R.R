@@ -22,12 +22,12 @@ list2XML4R <- function(list, file="", ind=0){
 			str <- c(str, list2XML4R(list[[name]], ind=ind+1))
 		}
 
-			
-		if (inherits(list[[name]], c('logical', 'character', 'integer', 'vector', 'numeric'))) {
+		if (inherits(list[[name]], c('logical', 'character', 'integer', 'vector', 'numeric'))){
+
 			names <- ifelse(is.null(names(list[[name]])), FALSE, TRUE)
 			
 			type <- 'vector'
-			if(is.logical(list[[name]])) type <- 'logical'
+			if (inherits(list[[name]], 'logical')) type <- 'logical'
 
 			new_line <- '\n'
 			if(length(list[[name]]) == 1) new_line <- ''
@@ -50,8 +50,8 @@ list2XML4R <- function(list, file="", ind=0){
 			}
 		}
 
-		
-		if(is.matrix(list[[name]])){
+		if (inherits(list[[name]], 'matrix')){
+      
 			row_names <- ifelse(is.null(rownames(list[[name]])), FALSE, TRUE)
 			col_names <- ifelse(is.null(colnames(list[[name]])), FALSE, TRUE)
 
@@ -72,8 +72,8 @@ list2XML4R <- function(list, file="", ind=0){
 			}
 		}
 
-			
-		if(is.array(list[[name]]) && dim(list[[name]]) > 2){
+		if (inherits(list[[name]], 'array')){
+
 			# ARRAY DIMENSIONS
 			dims <- dim(list[[name]])
 			
