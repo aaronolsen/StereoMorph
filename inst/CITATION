@@ -13,7 +13,7 @@ citEntry(entry="Manual",
 	title = "{StereoMorph}: Stereo Camera Calibration and Reconstruction",
 	author = c(person("Aaron", "Olsen"),
 			   person("Annat", "Haber")),
-	note = "version 1.6.1",
-	year = 2017,
-    textVersion  = "Olsen, AM & A Haber (2017). StereoMorph: Stereo Camera Calibration and Reconstruction. Version 1.6.1. https://CRAN.R-project.org/package=StereoMorph."
+	note = "version 1.6.5",
+	year = 2022,
+    textVersion  = "Olsen, AM & A Haber (2022). StereoMorph: Stereo Camera Calibration and Reconstruction. Version 1.6.5. https://CRAN.R-project.org/package=StereoMorph."
 )
