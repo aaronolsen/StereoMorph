@@ -17,6 +17,15 @@ XML4R2listLines <- function(lines, line.init=1){
 			i <- i + 1
 			next
 		}
+
+		# Check for line that is an array but only has two dimensions
+		# This was a line that was introduced *by mistake* in a previous version of StereoMorph
+		# Skip this line
+		# 		<ax_lobe_L type=array dim=3,2 as.numeric=TRUE >
+		if(grepl(pattern='[ |<]type=array[ |>]', x=line) && grepl(pattern='dim=[[:digit:]]+,[[:digit:]]+[ |>]', x=line)){
+			i <- i + 1
+			next
+		}
 		
 		# CHECK FOR OBJECT OPEN/CLOSE TAG
 		reg_expr_open <- regexpr(pattern='<[[:alnum:]|_.-]+[ |>]', text=line)
