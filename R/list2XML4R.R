@@ -22,6 +22,11 @@ list2XML4R <- function(list, file="", ind=0){
 			str <- c(str, list2XML4R(list[[name]], ind=ind+1))
 		}
 
+		#print(list[[name]]);
+		#print(typeof(list[[name]]));
+		#print(inherits(list[[name]], c('logical', 'character', 'integer', 'vector', 'numeric')));
+		#print('-----\n');
+
 		if (inherits(list[[name]], c('logical', 'character', 'integer', 'vector', 'numeric'))){
 
 			names <- ifelse(is.null(names(list[[name]])), FALSE, TRUE)
@@ -50,55 +55,57 @@ list2XML4R <- function(list, file="", ind=0){
 			}
 		}
 
-		if (inherits(list[[name]], 'matrix')){
-      
-			row_names <- ifelse(is.null(rownames(list[[name]])), FALSE, TRUE)
-			col_names <- ifelse(is.null(colnames(list[[name]])), FALSE, TRUE)
-
-			# OPENING TAG
-			str <- c(str, paste0(paste(rep('\t', ind), collapse=''), '<', name, ' type=matrix rownames=', row_names,' colnames=', col_names,' nrow=', nrow(list[[name]]),' ncol=', ncol(list[[name]]),' as.numeric=', is.numeric(c(list[[name]])),' >\n'))
-
-			if(col_names){
-				str <- c(str, '\t', paste(rep('\t', ind), collapse=''))
-				if(row_names) str <- c(str, '\t')
-				str <- c(str, paste(colnames(list[[name]]), collapse='\t'), '\n')
-			}
-
-			# MATRIX VALUES
-			for(r in 1:nrow(list[[name]])){
-				str <- c(str, '\t', paste(rep('\t', ind), collapse=''))
-				if(row_names) str <- c(str, rownames(list[[name]])[r], '\t')
-				str <- c(str, paste(list[[name]][r, ], collapse='\t'), '\n')
-			}
-		}
-
 		if (inherits(list[[name]], 'array')){
+      
+			if(length(dim(list[[name]])) <= 2){
 
-			# ARRAY DIMENSIONS
-			dims <- dim(list[[name]])
-			
-			# CONVERT TO VECTOR
-			v <- c(list[[name]])
+				row_names <- ifelse(is.null(rownames(list[[name]])), FALSE, TRUE)
+				col_names <- ifelse(is.null(colnames(list[[name]])), FALSE, TRUE)
 
-			# OPENING TAG
-			str <- c(str, paste0(paste(rep('\t', ind), collapse=''), '<', name, ' type=array dim=', paste(dims, collapse=','), ' as.numeric=', is.numeric(c(list[[name]])),' >\n'))
-			
-			if(length(dims) > 4) stop("listToXML4R() currently only works with arrays of 3 or 4 dimensions.")
+				# OPENING TAG
+				str <- c(str, paste0(paste(rep('\t', ind), collapse=''), '<', name, ' type=matrix rownames=', row_names,' colnames=', col_names,' nrow=', nrow(list[[name]]),' ncol=', ncol(list[[name]]),' as.numeric=', is.numeric(c(list[[name]])),' >\n'))
 
-			# ARRAY VALUES
-			if(length(dims) == 3){
-				for(j in 1:dims[3]){
-					for(r in 1:dims[1]) str <- c(str, '\t', paste(rep('\t', ind), collapse=''), paste(list[[name]][r, , j], collapse='\t'), '\n')
-					if(j < dims[3]) str <- c(str, '\n')
+				if(col_names){
+					str <- c(str, '\t', paste(rep('\t', ind), collapse=''))
+					if(row_names) str <- c(str, '\t')
+					str <- c(str, paste(colnames(list[[name]]), collapse='\t'), '\n')
 				}
-			}
 
-			# ARRAY VALUES
-			if(length(dims) == 4){
-				for(k in 1:dims[4]){
+				# MATRIX VALUES
+				for(r in 1:nrow(list[[name]])){
+					str <- c(str, '\t', paste(rep('\t', ind), collapse=''))
+					if(row_names) str <- c(str, rownames(list[[name]])[r], '\t')
+					str <- c(str, paste(list[[name]][r, ], collapse='\t'), '\n')
+				}
+
+			}else{
+
+				# ARRAY DIMENSIONS
+				dims <- dim(list[[name]])
+			
+				# CONVERT TO VECTOR
+				v <- c(list[[name]])
+
+				# OPENING TAG
+				str <- c(str, paste0(paste(rep('\t', ind), collapse=''), '<', name, ' type=array dim=', paste(dims, collapse=','), ' as.numeric=', is.numeric(c(list[[name]])),' >\n'))
+			
+				if(length(dims) > 4) stop("listToXML4R() currently only works with arrays of 3 or 4 dimensions.")
+
+				# ARRAY VALUES
+				if(length(dims) == 3){
 					for(j in 1:dims[3]){
-						for(r in 1:dims[1]) str <- c(str, '\t', paste(rep('\t', ind), collapse=''), paste(list[[name]][r, , j, k], collapse='\t'), '\n')
-						if(k < dims[4] || j < dims[3]) str <- c(str, '\n')
+						for(r in 1:dims[1]) str <- c(str, '\t', paste(rep('\t', ind), collapse=''), paste(list[[name]][r, , j], collapse='\t'), '\n')
+						if(j < dims[3]) str <- c(str, '\n')
+					}
+				}
+
+				# ARRAY VALUES
+				if(length(dims) == 4){
+					for(k in 1:dims[4]){
+						for(j in 1:dims[3]){
+							for(r in 1:dims[1]) str <- c(str, '\t', paste(rep('\t', ind), collapse=''), paste(list[[name]][r, , j, k], collapse='\t'), '\n')
+							if(k < dims[4] || j < dims[3]) str <- c(str, '\n')
+						}
 					}
 				}
 			}
