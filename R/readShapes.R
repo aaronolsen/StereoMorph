@@ -1,5 +1,5 @@
 readShapes <- function(file, fields=NULL){
-	
+
 	# REPLACE EMTPY FILE NAMES WITH DIRECTORY
 	file <- gsub('/.txt', '/', file)
 	
@@ -36,7 +36,7 @@ readShapes <- function(file, fields=NULL){
 	}else{
 		filenames <- 1:length(file)
 	}
-	
+
 	if(length(file) == 1){
 
 		# READ SINGLE FILE
@@ -179,7 +179,7 @@ print.shapes <- function(x, ...){
 	r <- c(r, '\nShapes\n')
 
 	vector_limit <- 3
-	vector_names <- c('image.id', 'scaling', 'scaling.units', 'ruler.pixel', 'ruler.interval', 
+	vector_names <- c('image.id', 'image.name', 'scaling', 'scaling.units', 'ruler.pixel', 'ruler.interval', 
 		'checkerboard.nx', 'checkerboard.ny', 'square.pixel', 'square.size')
 
 	for(vector_name in vector_names){
