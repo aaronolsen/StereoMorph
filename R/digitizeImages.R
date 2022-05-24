@@ -20,7 +20,7 @@ digitizeImages <- function(image.file = image.file, shapes.file = NULL,
 		}, warning = function(w) {
 		}, error = function(e) {
 			if(e[1]$message == 'none of the packages are loaded'){
-				app_dir_dev <- '/Users/aaron/Documents/Research/github/StereoMorph/inst/extdata/apps/digitizeImages'
+				app_dir_dev <- '/Users/aaron/Documents/GitHub/StereoMorph/inst/extdata/apps/digitizeImages'
 				if(file.exists(app_dir_dev)){
 					return(app_dir_dev)
 				}else{
