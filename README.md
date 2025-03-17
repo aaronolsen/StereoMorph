@@ -13,8 +13,6 @@ To cite StereoMorph in a publication, please use:
 
 - Olsen Aaron M, Mark W Westneat. 2015. StereoMorph: an R package for the collection of 3D landmarks and curves using a stereo camera set-up. Methods in Ecology and Evolution 6:351-356. DOI: 10.1111/2041-210X.12326.
 
-- Olsen, AM & A Haber (2017). StereoMorph: Stereo Camera Calibration and Reconstruction. Version 1.6.1. https://CRAN.R-project.org/package=StereoMorph.
-
 # License
 Shield: [![CC BY-SA 4.0][cc-by-sa-shield]][cc-by-sa]
 
