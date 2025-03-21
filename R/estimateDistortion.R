@@ -53,6 +53,7 @@ estimateDistortion <- function(undistort.params, img.size){
 	
 	# Get parameter from run with the lowest error (including no distortion case)
 	p <- par[[which.min(objectives)]]
+        p <- c(p, rep(NA, 7- length(p)))
 	
 	# Add names to parameters
 	names(p) <- c('cx', 'cy', 'k1', 'k2', 'k3', 'p1', 'p2')
