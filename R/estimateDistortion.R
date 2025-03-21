@@ -14,13 +14,13 @@ estimateDistortion <- function(undistort.params, img.size){
 	# Try different starting parameters
 	p_start <- list(
 		rep(0, 5),
-		c(0.1, NA, NA, NA, NA),
-		c(0.1, 0.01, NA, NA, NA),
-		c(0.14, 0.006, 0.002, NA, NA),
-		c(0.1, 0.01, 1e-5, NA, NA),
+		c(0.1, NA, NA),
+		c(0.1, 0.01, NA),
+		c(0.14, 0.006, 0.002),
+		c(0.1, 0.01, 1e-5),
 		#c(0.1, 0.01, 1e-5, -1e-5, -0.1),
-		c(0.01, -0.001, 1e-5, NA, NA),
-		c(0.01, 0.1, -1e-5, NA, NA)
+		c(0.01, -0.001, 1e-5),
+		c(0.01, 0.1, -1e-5)
 	)
 	
 	# Save with each try
@@ -53,6 +53,7 @@ estimateDistortion <- function(undistort.params, img.size){
 	
 	# Get parameter from run with the lowest error (including no distortion case)
 	p <- par[[which.min(objectives)]]
+        p <- c(p, rep(NA, 7- length(p)))
 	
 	# Add names to parameters
 	names(p) <- c('cx', 'cy', 'k1', 'k2', 'k3', 'p1', 'p2')
