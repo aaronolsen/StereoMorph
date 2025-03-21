@@ -59,8 +59,9 @@ estimateUndistortion <- function(coor.2d, cal.nx, image.size){
 	}
 	
 	# GET PARAMETERS FROM RUN WITH LOWEST ERROR (INCLUDING NO DISTORTION CASE)
-	dist_params <- par[[which.min(objectives)]]
-	
+	dist_params <- c(par[[which.min(objectives)]], rep(NA, 7- length
+        dist_params <- c(dist_params, rep(NA, 7- length(dist_params)))
+							   
 	# ADD NAMES TO PARAMETERS
 	names(dist_params) <- c('cx', 'cy', 'k1', 'k2', 'k3', 'p1', 'p2')
 	
