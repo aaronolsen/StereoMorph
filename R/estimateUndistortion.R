@@ -21,13 +21,13 @@ estimateUndistortion <- function(coor.2d, cal.nx, image.size){
 	# TRY DIFFERENT STARTING PARAMETERS
 	p_start <- list(
 		rep(0, 5),
-		c(0.1, NA, NA, NA, NA),
-		c(0.1, 0.01, NA, NA, NA),
-		c(0.14, 0.006, 0.002, NA, NA),
-		c(0.1, 0.01, 1e-5, NA, NA),
+		c(0.1, NA, NA),
+		c(0.1, 0.01, NA),
+		c(0.14, 0.006, 0.002),
+		c(0.1, 0.01, 1e-5),
 		#c(0.1, 0.01, 1e-5, -1e-5, -0.1),
-		c(0.01, -0.001, 1e-5, NA, NA),
-		c(0.01, 0.1, -1e-5, NA, NA)
+		c(0.01, -0.001, 1e-5),
+		c(0.01, 0.1, -1e-5)
 	)
 	
 	# SAVE WITH EACH TRY
